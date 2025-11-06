@@ -2,13 +2,19 @@ using System.Text.Json.Serialization;
 using SteamClone.Backend.Services;
 using SteamClone.Backend.Services.Interfaces;
 using SteamClone.Backend.Settings;
+using SteamClone.Backend.Entities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.EntityFrameworkCore;
 using System.Text;
 using AutoMapper;
 using SteamClone.Backend.Profiles;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure DbContext with SQL Server
+builder.Services.AddDbContext<BackendDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Manual AutoMapper configuration
 var mapperConfig = new MapperConfiguration(cfg =>
