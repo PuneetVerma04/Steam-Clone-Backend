@@ -21,7 +21,7 @@ public class OrderService : IOrderService
             OrderId = _orders.Count + 1,
             UserId = userId,
             Items = new List<CartItem>(cartItems),
-            TotalPrice = cartItems.Sum(item => item.Price * item.Quantity),
+            TotalPrice = cartItems.Sum(item => item.Game.Price * item.Quantity),
             OrderDate = DateTime.UtcNow,
             Status = OrderStatus.Completed
         };
