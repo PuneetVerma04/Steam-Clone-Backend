@@ -11,7 +11,7 @@ public class AnalyticsService : IAnalyticsService
 
     public AnalyticsService(IGameService gameService, IUserService userService, IOrderService orderService)
     {
-        _gameService = gameService;     
+        _gameService = gameService;
         _userService = userService;
         _orderService = orderService;
     }
@@ -20,7 +20,7 @@ public class AnalyticsService : IAnalyticsService
     {
         var orders = _orderService.GetAllOrders().ToList();
         var users = _userService.GetAllUsers().ToList();
-        
+
         return new AnalyticsSummaryDto
         {
             Date = DateTime.UtcNow.Date,
