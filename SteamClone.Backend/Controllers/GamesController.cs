@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SteamClone.Backend.DTOs.Game;
-using SteamClone.Backend.Services.Interfaces;
 using SteamClone.Backend.Services;
 
 namespace SteamClone.Backend.Controllers;
