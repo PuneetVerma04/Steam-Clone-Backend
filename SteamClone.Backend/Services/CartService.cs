@@ -1,80 +1,97 @@
 ﻿using SteamClone.Backend.Entities;
 using SteamClone.Backend.DTOs.Cart;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 
 namespace SteamClone.Backend.Services;
 
 public class CartService : ICartService
 {
-    private readonly List<CartItem> _cartItems = new List<CartItem>();
-    private readonly IGameService _gameService;
+    private readonly BackendDbContext _dbContext;
     private readonly IMapper _mapper;
 
-    public CartService(IGameService gameService, IMapper mapper)
+    public CartService(BackendDbContext dbContext, IMapper mapper)
     {
-        _gameService = gameService;
+        _dbContext = dbContext;
         _mapper = mapper;
     }
 
     public IEnumerable<CartItemDto> GetCartItems(int userId)
     {
-        var items = _cartItems.Where(item => item.UserId == userId);
+        var items = _dbContext.CartItems
+            .Include(ci => ci.Game)
+            .Where(item => item.UserId == userId)
+            .ToList();
         return _mapper.Map<IEnumerable<CartItemDto>>(items);
     }
 
     public void AddToCart(int userId, int gameId, int quantity)
     {
-        var existingItem = _cartItems.FirstOrDefault(item => item.UserId == userId && item.GameId == gameId);
+        var existingItem = _dbContext.CartItems
+            .FirstOrDefault(item => item.UserId == userId && item.GameId == gameId);
+
         if (existingItem != null)
         {
             existingItem.Quantity += quantity;
         }
         else
         {
-            var game = _gameService.GetById(gameId);
+            var game = _dbContext.Games.Find(gameId);
             if (game == null)
             {
                 throw new Exception("Game not found");
             }
 
-            _cartItems.Add(new CartItem
+            _dbContext.CartItems.Add(new CartItem
             {
                 UserId = userId,
                 GameId = gameId,
                 Quantity = quantity,
-                Game = _mapper.Map<Game>(game)
+                Game = game
             });
         }
+
+        _dbContext.SaveChanges();
     }
 
     public void UpdateCartItem(int userId, int gameId, int quantity)
     {
-        var existingItem = _cartItems.FirstOrDefault(item => item.UserId == userId && item.GameId == gameId);
+        var existingItem = _dbContext.CartItems
+            .FirstOrDefault(item => item.UserId == userId && item.GameId == gameId);
+
         if (existingItem == null)
         {
             throw new Exception("Item not found in cart");
         }
+
         if (quantity > 0)
         {
             existingItem.Quantity = quantity;
+            _dbContext.SaveChanges();
         }
         else
         {
-            _cartItems.Remove(existingItem);
+            _dbContext.CartItems.Remove(existingItem);
+            _dbContext.SaveChanges();
         }
     }
 
     public void RemoveCartItem(int userId, int gameId)
     {
-        var existingItem = _cartItems.FirstOrDefault(item => item.UserId == userId && item.GameId == gameId);
+        var existingItem = _dbContext.CartItems
+            .FirstOrDefault(item => item.UserId == userId && item.GameId == gameId);
+
         if (existingItem != null)
         {
-            _cartItems.Remove(existingItem);
+            _dbContext.CartItems.Remove(existingItem);
+            _dbContext.SaveChanges();
         }
     }
 
     public void ClearCart(int userId)
     {
-        _cartItems.RemoveAll(ci => ci.UserId == userId);
+        var items = _dbContext.CartItems.Where(ci => ci.UserId == userId);
+        _dbContext.CartItems.RemoveRange(items);
+        _dbContext.SaveChanges();
     }
 }
