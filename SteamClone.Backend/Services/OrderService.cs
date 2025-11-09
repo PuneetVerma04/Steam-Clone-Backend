@@ -1,16 +1,18 @@
 ﻿using SteamClone.Backend.Entities;
 using SteamClone.Backend.DTOs.Order;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 
 namespace SteamClone.Backend.Services;
 
 public class OrderService : IOrderService
 {
-    private readonly List<Order> _orders = new();
+    private readonly BackendDbContext _dbContext;
     private readonly IMapper _mapper;
 
-    public OrderService(IMapper mapper)
+    public OrderService(BackendDbContext dbContext, IMapper mapper)
     {
+        _dbContext = dbContext;
         _mapper = mapper;
     }
 
@@ -18,39 +20,47 @@ public class OrderService : IOrderService
     {
         var order = new Order
         {
-            OrderId = _orders.Count + 1,
             UserId = userId,
             Items = new List<CartItem>(cartItems),
             TotalPrice = cartItems.Sum(item => item.Game.Price * item.Quantity),
             OrderDate = DateTime.UtcNow,
             Status = OrderStatus.Completed
         };
-        _orders.Add(order);
+
+        _dbContext.Orders.Add(order);
+        _dbContext.SaveChanges();
+
         return _mapper.Map<OrderResponseDto>(order);
     }
 
     public OrderResponseDto? GetOrderById(int orderId)
     {
-        var order = _orders.FirstOrDefault(o => o.OrderId == orderId);
+        var order = _dbContext.Orders.Find(orderId);
         return order == null ? null : _mapper.Map<OrderResponseDto>(order);
     }
 
     public IEnumerable<OrderResponseDto> GetOrdersForUser(int userId)
     {
-        var orders = _orders.Where(o => o.UserId == userId);
+        var orders = _dbContext.Orders
+            .Where(o => o.UserId == userId)
+            .ToList();
         return _mapper.Map<IEnumerable<OrderResponseDto>>(orders);
     }
 
     public IEnumerable<OrderResponseDto> GetAllOrders()
     {
-        return _mapper.Map<IEnumerable<OrderResponseDto>>(_orders);
+        var orders = _dbContext.Orders.ToList();
+        return _mapper.Map<IEnumerable<OrderResponseDto>>(orders);
     }
 
     public bool UpdateOrderStatus(int orderId, OrderStatus newStatus)
     {
-        var order = _orders.FirstOrDefault(o => o.OrderId == orderId);
+        var order = _dbContext.Orders.Find(orderId);
         if (order == null) return false;
+
         order.Status = newStatus;
+        _dbContext.SaveChanges();
+
         return true;
     }
 }
