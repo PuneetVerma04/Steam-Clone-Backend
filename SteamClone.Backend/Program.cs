@@ -31,7 +31,7 @@ var mapper = mapperConfig.CreateMapper();
 builder.Services.AddSingleton(mapper);
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
-builder.Services.AddSingleton<IUserService, UserService>();
+builder.Services.AddScoped<IUserService, UserService>(); // Changed to Scoped for DbContext
 builder.Services.AddScoped<IGameService, GameService>(); // Changed to Scoped for DbContext
 builder.Services.AddScoped<ICartService, CartService>(); // Changed to Scoped (depends on IGameService)
 builder.Services.AddSingleton<IOrderService, OrderService>();
