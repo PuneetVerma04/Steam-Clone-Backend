@@ -31,13 +31,13 @@ var mapper = mapperConfig.CreateMapper();
 builder.Services.AddSingleton(mapper);
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
-builder.Services.AddScoped<IUserService, UserService>(); // Changed to Scoped for DbContext
-builder.Services.AddScoped<IGameService, GameService>(); // Changed to Scoped for DbContext
-builder.Services.AddScoped<ICartService, CartService>(); // Changed to Scoped (depends on IGameService)
-builder.Services.AddSingleton<IOrderService, OrderService>();
-builder.Services.AddSingleton<IReviewService, ReviewService>();
-builder.Services.AddSingleton<ICouponService, CouponService>();
-builder.Services.AddScoped<IAnalyticsService, AnalyticsService>(); // Changed to Scoped (depends on IGameService)
+builder.Services.AddScoped<IUserService, UserService>(); // Scoped for DbContext
+builder.Services.AddScoped<IGameService, GameService>(); // Scoped for DbContext
+builder.Services.AddScoped<ICartService, CartService>(); // Scoped for DbContext
+builder.Services.AddScoped<IOrderService, OrderService>(); // Scoped for DbContext
+builder.Services.AddScoped<IReviewService, ReviewService>(); // Scoped for DbContext
+builder.Services.AddScoped<ICouponService, CouponService>(); // Scoped for DbContext
+builder.Services.AddScoped<IAnalyticsService, AnalyticsService>(); // Scoped (depends on other scoped services)
 builder.Services.AddSingleton<JwtService>();
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
