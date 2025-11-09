@@ -6,13 +6,10 @@ public static class DbSeeder
 {
   public static void SeedDatabase(BackendDbContext context)
   {
-    // Only seed if database is empty
-    if (context.Games.Any())
+    // Seed Games
+    if (!context.Games.Any())
     {
-      return; // Database already seeded
-    }
-
-    var games = new List<Game>
+      var games = new List<Game>
         {
             new Game
             {
@@ -116,7 +113,59 @@ public static class DbSeeder
             }
         };
 
-    context.Games.AddRange(games);
-    context.SaveChanges();
+      context.Games.AddRange(games);
+      context.SaveChanges();
+    }
+
+    // Seed Users
+    if (!context.Users.Any())
+    {
+      var users = new List<User>
+    {
+      new User
+      {
+        Username = "john_doe",
+        Email = "john@example.com",
+        PasswordHash = BCrypt.Net.BCrypt.HashPassword("password123"),
+        Role = UserRole.Player,
+        CreatedAt = DateTime.UtcNow
+      },
+      new User
+      {
+        Username = "jane_doe",
+        Email = "jane@example.com",
+        PasswordHash = BCrypt.Net.BCrypt.HashPassword("password123"),
+        Role = UserRole.Player,
+        CreatedAt = DateTime.UtcNow
+      },
+      new User
+      {
+        Username = "alice_smith",
+        Email = "alice@example.com",
+        PasswordHash = BCrypt.Net.BCrypt.HashPassword("password123"),
+        Role = UserRole.Player,
+        CreatedAt = DateTime.UtcNow
+      },
+      new User
+      {
+        Username = "bob_jones",
+        Email = "bob@example.com",
+        PasswordHash = BCrypt.Net.BCrypt.HashPassword("password123"),
+        Role = UserRole.Publisher,
+        CreatedAt = DateTime.UtcNow
+      },
+      new User
+      {
+        Username = "charlie_brown",
+        Email = "charlie@example.com",
+        PasswordHash = BCrypt.Net.BCrypt.HashPassword("password123"),
+        Role = UserRole.Admin,
+        CreatedAt = DateTime.UtcNow
+      }
+    };
+
+      context.Users.AddRange(users);
+      context.SaveChanges();
+    }
   }
 }
