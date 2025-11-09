@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SteamClone.Backend.DTOs.Game;
+using SteamClone.Backend.Services.Interfaces;
 using SteamClone.Backend.Services;
-using AutoMapper;
 
 namespace SteamClone.Backend.Controllers;
 
@@ -11,12 +11,10 @@ namespace SteamClone.Backend.Controllers;
 public class GamesController : ControllerBase
 {
     private readonly IGameService _gameService;
-    private readonly IMapper _mapper;
 
-    public GamesController(IGameService gameService, IMapper mapper)
+    public GamesController(IGameService gameService)
     {
         _gameService = gameService;
-        _mapper = mapper;
     }
 
     [HttpGet]
