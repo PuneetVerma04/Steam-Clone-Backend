@@ -3,6 +3,7 @@ using SteamClone.Backend.Services;
 using SteamClone.Backend.Services.Interfaces;
 using SteamClone.Backend.Settings;
 using SteamClone.Backend.Entities;
+using SteamClone.Backend.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.EntityFrameworkCore;
@@ -31,12 +32,12 @@ builder.Services.AddSingleton(mapper);
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 builder.Services.AddSingleton<IUserService, UserService>();
-builder.Services.AddSingleton<IGameService, GameService>();
-builder.Services.AddSingleton<ICartService, CartService>();
+builder.Services.AddScoped<IGameService, GameService>(); // Changed to Scoped for DbContext
+builder.Services.AddScoped<ICartService, CartService>(); // Changed to Scoped (depends on IGameService)
 builder.Services.AddSingleton<IOrderService, OrderService>();
 builder.Services.AddSingleton<IReviewService, ReviewService>();
 builder.Services.AddSingleton<ICouponService, CouponService>();
-builder.Services.AddSingleton<IAnalyticsService, AnalyticsService>();
+builder.Services.AddScoped<IAnalyticsService, AnalyticsService>(); // Changed to Scoped (depends on IGameService)
 builder.Services.AddSingleton<JwtService>();
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
@@ -72,6 +73,13 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+// Seed the database
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<BackendDbContext>();
+    DbSeeder.SeedDatabase(dbContext);
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
