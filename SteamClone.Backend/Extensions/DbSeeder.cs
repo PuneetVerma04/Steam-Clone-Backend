@@ -167,5 +167,79 @@ public static class DbSeeder
       context.Users.AddRange(users);
       context.SaveChanges();
     }
+
+    // Seed Coupons
+    if (!context.Coupons.Any())
+    {
+      var coupons = new List<Coupons>
+      {
+        new Coupons
+        {
+          Code = "WELCOME10",
+          CouponName = "Welcome 10%",
+          DiscountPercent = 10,
+          IsActive = true,
+          CreatedAt = DateTime.UtcNow,
+          ExpirationDate = DateTime.UtcNow.AddMonths(3)
+        },
+        new Coupons
+        {
+          Code = "SUMMER25",
+          CouponName = "Summer Sale 25%",
+          DiscountPercent = 25,
+          IsActive = true,
+          CreatedAt = DateTime.UtcNow,
+          ExpirationDate = DateTime.UtcNow.AddMonths(1)
+        }
+      };
+
+      context.Coupons.AddRange(coupons);
+      context.SaveChanges();
+    }
+
+    // Seed CartItems
+    if (!context.CartItems.Any())
+    {
+      var cartItems = new List<CartItem>
+      {
+        new CartItem { UserId = 1, GameId = 1, Quantity = 1, Game = context.Games.First(g => g.Id == 1) },
+        new CartItem { UserId = 1, GameId = 5, Quantity = 2, Game = context.Games.First(g => g.Id == 5) },
+        new CartItem { UserId = 2, GameId = 3, Quantity = 1, Game = context.Games.First(g => g.Id == 3) },
+        new CartItem { UserId = 3, GameId = 10, Quantity = 1, Game = context.Games.First(g => g.Id == 10) },
+        new CartItem { UserId = 4, GameId = 2, Quantity = 1, Game = context.Games.First(g => g.Id == 2) }
+      };
+
+      context.CartItems.AddRange(cartItems);
+      context.SaveChanges();
+    }
+
+    // Seed Orders (Order.Items are not mapped to DB in the current model - seed top-level order rows)
+    if (!context.Orders.Any())
+    {
+      var orders = new List<Order>
+      {
+        new Order { UserId = 1, TotalPrice = 59.99m, OrderDate = DateTime.UtcNow.AddDays(-10), Status = OrderStatus.Completed },
+        new Order { UserId = 2, TotalPrice = 39.99m, OrderDate = DateTime.UtcNow.AddDays(-5), Status = OrderStatus.Completed },
+        new Order { UserId = 3, TotalPrice = 29.99m, OrderDate = DateTime.UtcNow.AddDays(-2), Status = OrderStatus.Pending }
+      };
+
+      context.Orders.AddRange(orders);
+      context.SaveChanges();
+    }
+
+    // Seed Reviews
+    if (!context.Reviews.Any())
+    {
+      var reviews = new List<Reviews>
+      {
+        new Reviews { UserId = 1, GameId = 1, Rating = 5, Comment = "Amazing game!", ReviewDate = DateTime.UtcNow.AddDays(-20) },
+        new Reviews { UserId = 2, GameId = 1, Rating = 4, Comment = "Great but some bugs.", ReviewDate = DateTime.UtcNow.AddDays(-18) },
+        new Reviews { UserId = 3, GameId = 4, Rating = 5, Comment = "Masterpiece.", ReviewDate = DateTime.UtcNow.AddDays(-30) },
+        new Reviews { UserId = 4, GameId = 2, Rating = 3, Comment = "It's okay.", ReviewDate = DateTime.UtcNow.AddDays(-7) }
+      };
+
+      context.Reviews.AddRange(reviews);
+      context.SaveChanges();
+    }
   }
 }
