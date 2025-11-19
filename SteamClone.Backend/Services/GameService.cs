@@ -1,7 +1,7 @@
 ﻿using SteamClone.Backend.Entities;
 using SteamClone.Backend.DTOs.Game;
 using AutoMapper;
-using Microsoft.EntityFrameworkCore;
+
 
 namespace SteamClone.Backend.Services;
 

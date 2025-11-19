@@ -41,7 +41,7 @@ public class BackendDbContext : DbContext
                 .IsRequired();
             entity.Property(u => u.CreatedAt)
                 .IsRequired()
-                .HasDefaultValueSql("GETUTCDATE()");
+                .HasDefaultValueSql("GETUTCDATE()"); // Default to current UTC time
             entity.Property(u => u.UpdatedAt);
         });
 
@@ -82,7 +82,7 @@ public class BackendDbContext : DbContext
             entity.HasOne(ci => ci.Game) // Configure relationship with Game
                 .WithMany()
                 .HasForeignKey(ci => ci.GameId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Cascade); // Cascade delete when Game is deleted
         });
 
         // Configure Order entity
@@ -95,11 +95,11 @@ public class BackendDbContext : DbContext
 
             entity.Property(o => o.TotalPrice)
                 .IsRequired()
-                .HasColumnType("decimal(18,2)");
+                .HasColumnType("decimal(18,2)"); // Price with 2 decimal places
 
             entity.Property(o => o.OrderDate)
                 .IsRequired()
-                .HasDefaultValueSql("GETUTCDATE()");
+                .HasDefaultValueSql("GETUTCDATE()"); // Default to current UTC time
 
             entity.Property(o => o.Status)
                 .HasConversion<string>()
@@ -129,7 +129,7 @@ public class BackendDbContext : DbContext
 
             entity.Property(r => r.ReviewDate)
                 .IsRequired()
-                .HasDefaultValueSql("GETUTCDATE()");
+                .HasDefaultValueSql("GETUTCDATE()"); // Default to current UTC time
 
             entity.HasIndex(r => new { r.UserId, r.GameId }) // Prevent duplicate reviews
                 .IsUnique();
@@ -160,7 +160,7 @@ public class BackendDbContext : DbContext
 
             entity.Property(c => c.CreatedAt)
                 .IsRequired()
-                .HasDefaultValueSql("GETUTCDATE()");
+                .HasDefaultValueSql("GETUTCDATE()"); // Default to current UTC time
 
             entity.Property(c => c.ExpirationDate)
                 .IsRequired();
