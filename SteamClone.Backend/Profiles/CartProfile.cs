@@ -8,7 +8,10 @@ public class CartProfile : Profile
 {
     public CartProfile()
     {
-        CreateMap<CartItem, CartItemDto>();
+        CreateMap<CartItem, CartItemDto>()
+            .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Game.Title))
+            .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Game.Price))
+            .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.Game.ImageUrl));
         CreateMap<CartRequest, CartItem>();
     }
 }
