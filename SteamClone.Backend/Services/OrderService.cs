@@ -21,7 +21,12 @@ public class OrderService : IOrderService
         var order = new Order
         {
             UserId = userId,
-            Items = new List<CartItem>(cartItems),
+            Items = cartItems.Select(ci => new OrderItem
+            {
+                GameId = ci.GameId,
+                Quantity = ci.Quantity,
+                Price = ci.Game.Price // Store price at time of purchase
+            }).ToList(),
             TotalPrice = cartItems.Sum(item => item.Game.Price * item.Quantity),
             OrderDate = DateTime.UtcNow,
             Status = OrderStatus.Completed
@@ -30,18 +35,29 @@ public class OrderService : IOrderService
         _dbContext.Orders.Add(order);
         _dbContext.SaveChanges();
 
-        return _mapper.Map<OrderResponseDto>(order);
+        // Reload with navigation properties
+        var createdOrder = _dbContext.Orders
+            .Include(o => o.Items)
+                .ThenInclude(oi => oi.Game)
+            .FirstOrDefault(o => o.OrderId == order.OrderId);
+
+        return _mapper.Map<OrderResponseDto>(createdOrder);
     }
 
     public OrderResponseDto? GetOrderById(int orderId)
     {
-        var order = _dbContext.Orders.Find(orderId);
+        var order = _dbContext.Orders
+            .Include(o => o.Items)
+                .ThenInclude(oi => oi.Game)
+            .FirstOrDefault(o => o.OrderId == orderId);
         return order == null ? null : _mapper.Map<OrderResponseDto>(order);
     }
 
     public IEnumerable<OrderResponseDto> GetOrdersForUser(int userId)
     {
         var orders = _dbContext.Orders
+            .Include(o => o.Items)
+                .ThenInclude(oi => oi.Game)
             .Where(o => o.UserId == userId)
             .ToList();
         return _mapper.Map<IEnumerable<OrderResponseDto>>(orders);
@@ -49,7 +65,10 @@ public class OrderService : IOrderService
 
     public IEnumerable<OrderResponseDto> GetAllOrders()
     {
-        var orders = _dbContext.Orders.ToList();
+        var orders = _dbContext.Orders
+            .Include(o => o.Items)
+                .ThenInclude(oi => oi.Game)
+            .ToList();
         return _mapper.Map<IEnumerable<OrderResponseDto>>(orders);
     }
 
