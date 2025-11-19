@@ -213,14 +213,70 @@ public static class DbSeeder
       context.SaveChanges();
     }
 
-    // Seed Orders (Order.Items are not mapped to DB in the current model - seed top-level order rows)
+    // Seed Orders with OrderItems
     if (!context.Orders.Any())
     {
       var orders = new List<Order>
       {
-        new Order { UserId = 1, TotalPrice = 59.99m, OrderDate = DateTime.UtcNow.AddDays(-10), Status = OrderStatus.Completed },
-        new Order { UserId = 2, TotalPrice = 39.99m, OrderDate = DateTime.UtcNow.AddDays(-5), Status = OrderStatus.Completed },
-        new Order { UserId = 3, TotalPrice = 29.99m, OrderDate = DateTime.UtcNow.AddDays(-2), Status = OrderStatus.Pending }
+        new Order 
+        { 
+          UserId = 1, 
+          TotalPrice = 159.97m, 
+          OrderDate = DateTime.UtcNow.AddDays(-10), 
+          Status = OrderStatus.Completed,
+          Items = new List<OrderItem>
+          {
+            new OrderItem { GameId = 1, Quantity = 1, Price = 59.99m }, // Elden Ring
+            new OrderItem { GameId = 5, Quantity = 2, Price = 49.99m }  // RDR2
+          }
+        },
+        new Order 
+        { 
+          UserId = 2, 
+          TotalPrice = 109.98m, 
+          OrderDate = DateTime.UtcNow.AddDays(-5), 
+          Status = OrderStatus.Completed,
+          Items = new List<OrderItem>
+          {
+            new OrderItem { GameId = 3, Quantity = 1, Price = 69.99m }, // God of War
+            new OrderItem { GameId = 2, Quantity = 1, Price = 39.99m }  // Cyberpunk
+          }
+        },
+        new Order 
+        { 
+          UserId = 3, 
+          TotalPrice = 44.98m, 
+          OrderDate = DateTime.UtcNow.AddDays(-2), 
+          Status = OrderStatus.Pending,
+          Items = new List<OrderItem>
+          {
+            new OrderItem { GameId = 4, Quantity = 1, Price = 29.99m }, // Witcher 3
+            new OrderItem { GameId = 10, Quantity = 1, Price = 14.99m }  // Hollow Knight
+          }
+        },
+        new Order 
+        { 
+          UserId = 1, 
+          TotalPrice = 46.94m, 
+          OrderDate = DateTime.UtcNow.AddDays(-15), 
+          Status = OrderStatus.Completed,
+          Items = new List<OrderItem>
+          {
+            new OrderItem { GameId = 6, Quantity = 1, Price = 19.99m }, // Hades
+            new OrderItem { GameId = 7, Quantity = 1, Price = 26.95m }  // Minecraft
+          }
+        },
+        new Order 
+        { 
+          UserId = 2, 
+          TotalPrice = 59.99m, 
+          OrderDate = DateTime.UtcNow.AddDays(-20), 
+          Status = OrderStatus.Completed,
+          Items = new List<OrderItem>
+          {
+            new OrderItem { GameId = 1, Quantity = 1, Price = 59.99m }  // Elden Ring (popular!)
+          }
+        }
       };
 
       context.Orders.AddRange(orders);
