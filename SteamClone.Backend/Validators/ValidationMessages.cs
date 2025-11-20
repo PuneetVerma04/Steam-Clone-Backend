@@ -1,0 +1,14 @@
+namespace SteamClone.Backend.Validators;
+
+public class ValidationMessages
+{
+    public const string RequiredField = "This field is required.";
+    public const string InvalidEmail = "The email format is invalid.";
+    public const string InvalidUsername = "Username can only contain alphanumeric characters and underscores.";
+    public const string PasswordTooWeak = "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.";
+    public const string PasswordsDoNotMatch = "Passwords do not match.";
+    public const string InvalidId = "Invalid ID provided.";
+    public const string InvalidPrice = "The price must be greater than or equal to zero.";
+    public const string InvalidQuantity = "The quantity must be at least 1.";
+    public const string InvalidRating = "Rating must be between 1 and 5.";
+}
