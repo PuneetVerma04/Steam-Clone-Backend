@@ -2,11 +2,20 @@ using SteamClone.Backend.Entities;
 
 namespace SteamClone.Backend.Extensions;
 
+/// <summary>
+/// Utility class for seeding the database with initial test data
+/// Runs on application startup to populate tables for development and testing
+/// </summary>
 public static class DbSeeder
 {
+  /// <summary>
+  /// Seeds the database with sample games, users, coupons, cart items, orders, and reviews
+  /// Only adds data if the respective tables are empty
+  /// </summary>
+  /// <param name="context">Database context to seed</param>
   public static void SeedDatabase(BackendDbContext context)
   {
-    // Seed Games
+    // Seed Games - populate catalog with sample games
     if (!context.Games.Any())
     {
       var games = new List<Game>
@@ -117,7 +126,7 @@ public static class DbSeeder
       context.SaveChanges();
     }
 
-    // Seed Users
+    // Seed Users - create sample user accounts with different roles
     if (!context.Users.Any())
     {
       var users = new List<User>
@@ -168,7 +177,7 @@ public static class DbSeeder
       context.SaveChanges();
     }
 
-    // Seed Coupons
+    // Seed Coupons - create promotional discount codes
     if (!context.Coupons.Any())
     {
       var coupons = new List<Coupons>
@@ -197,7 +206,7 @@ public static class DbSeeder
       context.SaveChanges();
     }
 
-    // Seed CartItems
+    // Seed CartItems - populate shopping carts for test users
     if (!context.CartItems.Any())
     {
       var cartItems = new List<CartItem>
@@ -213,16 +222,17 @@ public static class DbSeeder
       context.SaveChanges();
     }
 
-    // Seed Orders with OrderItems
+    // Seed Orders with OrderItems - create sample purchase history
     if (!context.Orders.Any())
     {
       var orders = new List<Order>
       {
-        new Order 
-        { 
-          UserId = 1, 
-          TotalPrice = 159.97m, 
-          OrderDate = DateTime.UtcNow.AddDays(-10), 
+        // User 1's first order - purchased Elden Ring and RDR2
+        new Order
+        {
+          UserId = 1,
+          TotalPrice = 159.97m,
+          OrderDate = DateTime.UtcNow.AddDays(-10),
           Status = OrderStatus.Completed,
           Items = new List<OrderItem>
           {
@@ -230,11 +240,12 @@ public static class DbSeeder
             new OrderItem { GameId = 5, Quantity = 2, Price = 49.99m }  // RDR2
           }
         },
-        new Order 
-        { 
-          UserId = 2, 
-          TotalPrice = 109.98m, 
-          OrderDate = DateTime.UtcNow.AddDays(-5), 
+        // User 2's order - purchased God of War and Cyberpunk
+        new Order
+        {
+          UserId = 2,
+          TotalPrice = 109.98m,
+          OrderDate = DateTime.UtcNow.AddDays(-5),
           Status = OrderStatus.Completed,
           Items = new List<OrderItem>
           {
@@ -242,11 +253,12 @@ public static class DbSeeder
             new OrderItem { GameId = 2, Quantity = 1, Price = 39.99m }  // Cyberpunk
           }
         },
-        new Order 
-        { 
-          UserId = 3, 
-          TotalPrice = 44.98m, 
-          OrderDate = DateTime.UtcNow.AddDays(-2), 
+        // User 3's pending order
+        new Order
+        {
+          UserId = 3,
+          TotalPrice = 44.98m,
+          OrderDate = DateTime.UtcNow.AddDays(-2),
           Status = OrderStatus.Pending,
           Items = new List<OrderItem>
           {
@@ -254,11 +266,12 @@ public static class DbSeeder
             new OrderItem { GameId = 10, Quantity = 1, Price = 14.99m }  // Hollow Knight
           }
         },
-        new Order 
-        { 
-          UserId = 1, 
-          TotalPrice = 46.94m, 
-          OrderDate = DateTime.UtcNow.AddDays(-15), 
+        // User 1's second order
+        new Order
+        {
+          UserId = 1,
+          TotalPrice = 46.94m,
+          OrderDate = DateTime.UtcNow.AddDays(-15),
           Status = OrderStatus.Completed,
           Items = new List<OrderItem>
           {
@@ -266,24 +279,23 @@ public static class DbSeeder
             new OrderItem { GameId = 7, Quantity = 1, Price = 26.95m }  // Minecraft
           }
         },
-        new Order 
-        { 
-          UserId = 2, 
-          TotalPrice = 59.99m, 
-          OrderDate = DateTime.UtcNow.AddDays(-20), 
+        // User 2's second order - shows Elden Ring is popular
+        new Order
+        {
+          UserId = 2,
+          TotalPrice = 59.99m,
+          OrderDate = DateTime.UtcNow.AddDays(-20),
           Status = OrderStatus.Completed,
           Items = new List<OrderItem>
           {
             new OrderItem { GameId = 1, Quantity = 1, Price = 59.99m }  // Elden Ring (popular!)
           }
         }
-      };
-
-      context.Orders.AddRange(orders);
+      }; context.Orders.AddRange(orders);
       context.SaveChanges();
     }
 
-    // Seed Reviews
+    // Seed Reviews - create sample game reviews from users
     if (!context.Reviews.Any())
     {
       var reviews = new List<Reviews>
