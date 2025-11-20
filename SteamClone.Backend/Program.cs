@@ -8,8 +8,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
-using AutoMapper;
-using SteamClone.Backend.Profiles;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,18 +18,11 @@ builder.Services.AddDbContext<BackendDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Configure AutoMapper for DTO-Entity mappings
-// Manually configure mapper to ensure all profiles are loaded
-var mapperConfig = new MapperConfiguration(cfg =>
-{
-    cfg.AddProfile<UserProfile>();
-    cfg.AddProfile<CouponsProfile>();
-    cfg.AddProfile<GameProfile>();
-    cfg.AddProfile<CartProfile>();
-    cfg.AddProfile<OrderProfile>();
-    cfg.AddProfile<ReviewProfile>();
-});
-var mapper = mapperConfig.CreateMapper();
-builder.Services.AddSingleton(mapper);
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+// Configure FluentValidation
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 // Load JWT settings from appsettings.json
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
