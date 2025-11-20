@@ -3,76 +3,85 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SteamClone.Backend.Entities;
 using SteamClone.Backend.DTOs.Coupon;
+using SteamClone.Backend.Services;
 
 namespace SteamClone.Backend.Controllers;
 
-
+/// <summary>
+/// Manages promotional coupon operations including creation, retrieval, and deactivation
+/// Uses EF Core for persistent database storage
+/// </summary>
 [ApiController]
 [Route("store/[controller]")]
 public class CouponController : ControllerBase
 {
-    private static readonly List<Coupons> coupons = new();
-    private readonly IMapper _mapper;
+    private readonly ICouponService _couponService;
 
-    public CouponController(IMapper mapper)
+    /// <summary>
+    /// Initializes the coupon controller with the coupon service
+    /// </summary>
+    public CouponController(ICouponService couponService)
     {
-        _mapper = mapper;
+        _couponService = couponService;
     }
 
+    /// <summary>
+    /// Retrieves all available coupons (Player and Admin access)
+    /// </summary>
+    /// <returns>Collection of all coupons including active and inactive</returns>
     [HttpGet]
     [Authorize(Roles = "Player,Admin")]
     public ActionResult<IEnumerable<CouponDto>> GetCoupons()
     {
-        var couponDtos = _mapper.Map<IEnumerable<CouponDto>>(coupons);
+        var couponDtos = _couponService.GetAllCoupons();
         return Ok(couponDtos);
     }
 
+    /// <summary>
+    /// Retrieves a specific coupon by ID (Admin only)
+    /// </summary>
+    /// <param name="couponId">Coupon identifier</param>
+    /// <returns>Coupon details if found, otherwise NotFound</returns>
     [HttpGet("{couponId}")]
     [Authorize(Roles = "Admin")]
     public ActionResult<CouponDto> GetCouponById(int couponId)
     {
-        var coupon = coupons.FirstOrDefault(c => c.CouponId == couponId);
+        var coupon = _couponService.GetCouponById(couponId);
         if (coupon == null)
         {
             return NotFound();
         }
-        var couponDto = _mapper.Map<CouponDto>(coupon);
-        return Ok(couponDto);
+        return Ok(coupon);
     }
 
+    /// <summary>
+    /// Creates a new promotional coupon (Admin only)
+    /// </summary>
+    /// <param name="newCouponDto">Coupon details including code, name, discount, and expiration</param>
+    /// <returns>Created coupon with generated ID and location header</returns>
     [HttpPost]
     [Authorize(Roles = "Admin")]
     public ActionResult<CouponDto> CreateCoupon([FromBody] CreateCouponDto newCouponDto)
     {
-        var newCoupon = _mapper.Map<Coupons>(newCouponDto);
-        newCoupon.CouponId = coupons.Any() ? coupons.Max(c => c.CouponId) + 1 : 1;
-        newCoupon.IsActive = true;
-        newCoupon.CreatedAt = DateTime.UtcNow;
-
-        coupons.Add(newCoupon);
-
-        var createdCouponDto = _mapper.Map<CouponDto>(newCoupon);
-        return CreatedAtAction(nameof(GetCouponById), new { couponId = newCoupon.CouponId }, createdCouponDto);
+        var createdCouponDto = _couponService.CreateCoupon(newCouponDto);
+        return CreatedAtAction(nameof(GetCouponById), new { couponId = createdCouponDto.CouponId }, createdCouponDto);
     }
 
+    /// <summary>
+    /// Deactivates a coupon, making it unusable (Admin only)
+    /// </summary>
+    /// <param name="couponId">Coupon identifier to deactivate</param>
+    /// <returns>Deactivated coupon details, NotFound if doesn't exist, BadRequest if already inactive</returns>
     [HttpPatch("{couponId}/deactivate")]
     [Authorize(Roles = "Admin")]
     public ActionResult<CouponDto> UpdateCoupon(int couponId)
     {
-        var updatedCoupon = coupons.FirstOrDefault(c => c.CouponId == couponId);
+        var updatedCoupon = _couponService.DeactivateCoupon(couponId);
         if (updatedCoupon == null)
         {
-            return NotFound();
+            return BadRequest("Coupon not found or already inactive");
         }
 
-        if (!updatedCoupon.IsActive)
-        {
-            return BadRequest("Coupon is not active");
-        }
-        updatedCoupon.IsActive = false;
-        updatedCoupon.ExpirationDate = DateTime.UtcNow;
-
-        var updatedCouponDto = _mapper.Map<CouponDto>(updatedCoupon);
-        return Ok(updatedCouponDto);
+        return Ok(updatedCoupon);
     }
 }
