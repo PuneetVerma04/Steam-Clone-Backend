@@ -7,28 +7,21 @@ public class UpdateGameRequestDTOValidator : AbstractValidator<UpdateGameRequest
 {
     public UpdateGameRequestDTOValidator()
     {
-        RuleFor(x => x.Id)
-            .GreaterThan(0)
-            .WithMessage("Invalid game ID.");
+        RuleFor(x => x.Id).ValidId();
 
         When(x => x.Title != null, () =>
         {
-            RuleFor(x => x.Title!)
-                .NotEmpty().WithMessage("Title cannot be empty.")
-                .MaximumLength(100).WithMessage("Title cannot exceed 100 characters.");
+            RuleFor(x => x.Title!).ValidTitle();
         });
 
         When(x => x.Description != null, () =>
         {
-            RuleFor(x => x.Description!)
-                .NotEmpty().WithMessage("Description cannot be empty.")
-                .MaximumLength(1000).WithMessage("Description cannot exceed 1000 characters.");
+            RuleFor(x => x.Description!).ValidDescription();
         });
 
         When(x => x.Price != null, () =>
         {
-            RuleFor(x => x.Price!)
-                .GreaterThanOrEqualTo(0).WithMessage("Price must be non-negative.");
+            RuleFor(x => x.Price!.Value).ValidPrice();
         });
 
         When(x => x.Genre != null, () =>
@@ -45,17 +38,12 @@ public class UpdateGameRequestDTOValidator : AbstractValidator<UpdateGameRequest
 
         When(x => x.ReleaseDate != null, () =>
         {
-            RuleFor(x => x.ReleaseDate!)
-                .LessThanOrEqualTo(DateTime.UtcNow)
-                .WithMessage("Release date cannot be in the future.");
+            RuleFor(x => x.ReleaseDate!.Value).ValidReleaseDate();
         });
 
         When(x => x.ImageUrl != null, () =>
         {
-            RuleFor(x => x.ImageUrl!)
-                .NotEmpty().WithMessage("ImageUrl cannot be empty.")
-                .Must(url => Uri.IsWellFormedUriString(url, UriKind.Absolute))
-                .WithMessage("ImageUrl must be a valid URL.");
+            RuleFor(x => x.ImageUrl!).ValidUrl();
         });
     }
 }
