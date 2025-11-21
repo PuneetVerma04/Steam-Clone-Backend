@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SteamClone.Backend.DTOs.User;
+using SteamClone.Backend.Entities;
 using SteamClone.Backend.Services;
 using AutoMapper;
 using System.Security.Claims;
@@ -102,12 +103,18 @@ public class UsersController : ControllerBase
             user.Username = updatedUserDto.Username;
         if (updatedUserDto.Email != null)
             user.Email = updatedUserDto.Email;
-        if (updatedUserDto.Password != null)
-            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(updatedUserDto.Password);
-            
-        user.UpdatedAt = DateTime.UtcNow;
 
-        var updatedUser = _userService.Update(user);
+        User updatedUser;
+        if (updatedUserDto.Password != null)
+        {
+            // Use service method for secure password hashing
+            updatedUser = _userService.UpdatePassword(user, updatedUserDto.Password);
+        }
+        else
+        {
+            user.UpdatedAt = DateTime.UtcNow;
+            updatedUser = _userService.Update(user);
+        }
         var userDto = _mapper.Map<UserDto>(updatedUser);
 
         return Ok(userDto);

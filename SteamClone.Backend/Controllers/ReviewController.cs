@@ -83,7 +83,7 @@ public class ReviewController : ControllerBase
     /// </summary>
     /// <param name="gameId">Game identifier to review</param>
     /// <param name="newReviewDto">Review content including rating and comment</param>
-    /// <returns>Created review with generated ID and location header</returns>
+    /// <returns>Created review with 201 status</returns>
     [HttpPost("game/{gameId}/add")]
     [Authorize(Roles = "Player")]
     public ActionResult<ReviewDto> CreateReview(int gameId, [FromBody] ReviewCreateDto newReviewDto)
@@ -93,7 +93,7 @@ public class ReviewController : ControllerBase
         // Create review associated with current user and game
         var createdReview = _reviewService.AddReview(gameId, currentUserId, newReviewDto);
 
-        return CreatedAtAction(nameof(GetReviewById), new { reviewId = createdReview.ReviewId }, createdReview);
+        return StatusCode(201, createdReview);
     }
 
     /// <summary>

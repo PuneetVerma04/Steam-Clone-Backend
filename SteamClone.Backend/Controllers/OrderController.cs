@@ -5,6 +5,7 @@ using SteamClone.Backend.DTOs.Order;
 using SteamClone.Backend.Entities;
 using SteamClone.Backend.Services;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 
 namespace SteamClone.Backend.Controllers;
 
@@ -19,15 +20,17 @@ public class OrderController : ControllerBase
     private readonly IOrderService _orderService;
     private readonly ICartService _cartService;
     private readonly IMapper _mapper;
+    private readonly BackendDbContext _dbContext;
 
     /// <summary>
     /// Initializes the order controller with required services
     /// </summary>
-    public OrderController(IOrderService orderService, ICartService cartService, IMapper mapper)
+    public OrderController(IOrderService orderService, ICartService cartService, IMapper mapper, BackendDbContext dbContext)
     {
         _orderService = orderService;
         _cartService = cartService;
         _mapper = mapper;
+        _dbContext = dbContext;
     }
 
     /// <summary>
@@ -76,16 +79,21 @@ public class OrderController : ControllerBase
     public IActionResult Checkout()
     {
         var currentUserId = GetCurrentUserId();
-        var cartItems = _cartService.GetCartItems(currentUserId).ToList();
+
+        // Fetch actual CartItem entities with Game navigation property
+        var cartItemEntities = _dbContext.CartItems
+            .Include(ci => ci.Game)
+            .Where(ci => ci.UserId == currentUserId)
+            .ToList();
 
         // Validate cart is not empty
-        if (!cartItems.Any())
+        if (!cartItemEntities.Any())
         {
             return BadRequest("Cart is empty");
         }
 
         // Create order from cart items and clear the cart
-        var order = _orderService.CreateOrder(currentUserId, _mapper.Map<List<CartItem>>(cartItems));
+        var order = _orderService.CreateOrder(currentUserId, cartItemEntities);
         _cartService.ClearCart(currentUserId);
         return Ok(order);
     }

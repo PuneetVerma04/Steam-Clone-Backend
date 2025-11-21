@@ -2,6 +2,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SteamClone.Backend.DTOs.Game;
 using SteamClone.Backend.Services;
+using SteamClone.Backend.Entities;
+using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 
 namespace SteamClone.Backend.Controllers;
 
@@ -13,13 +16,17 @@ namespace SteamClone.Backend.Controllers;
 public class GamesController : ControllerBase
 {
     private readonly IGameService _gameService;
+    private readonly BackendDbContext _dbContext;
+    private readonly IMapper _mapper;
 
     /// <summary>
-    /// Initializes the games controller with game service
+    /// Initializes the games controller with game service, database context, and mapper
     /// </summary>
-    public GamesController(IGameService gameService)
+    public GamesController(IGameService gameService, BackendDbContext dbContext, IMapper mapper)
     {
         _gameService = gameService;
+        _dbContext = dbContext;
+        _mapper = mapper;
     }
 
     /// <summary>
@@ -32,22 +39,16 @@ public class GamesController : ControllerBase
     [AllowAnonymous]
     public ActionResult<IEnumerable<GameResponseDTO>> GetGames(string? genre = null, decimal? maxPrice = null)
     {
-        // Retrieve all games from the database
-        var games = _gameService.GetAllGames();
+        var query = _dbContext.Games.Include(g => g.Publisher).AsQueryable();
 
-        // Apply genre filter if provided
         if (!string.IsNullOrEmpty(genre))
-        {
-            games = games.Where(g => g.Genre.Equals(genre, StringComparison.OrdinalIgnoreCase));
-        }
+            query = query.Where(g => g.Genre.Equals(genre, StringComparison.OrdinalIgnoreCase));
 
-        // Apply price filter if provided
         if (maxPrice.HasValue)
-        {
-            games = games.Where(g => g.Price <= maxPrice.Value);
-        }
+            query = query.Where(g => g.Price <= maxPrice.Value);
 
-        return Ok(games);
+        var games = query.ToList();
+        return Ok(_mapper.Map<IEnumerable<GameResponseDTO>>(games));
     }
 
     /// <summary>
@@ -82,18 +83,28 @@ public class GamesController : ControllerBase
 
     /// <summary>
     /// Updates an existing game (Publisher and Admin only)
+    /// Publishers can only update their own games
     /// </summary>
     /// <param name="id">Game identifier to update</param>
     /// <param name="updatedGame">Updated game information</param>
-    /// <returns>Updated game details if found, otherwise NotFound</returns>
+    /// <returns>Updated game details if found and authorized, otherwise NotFound or Forbidden</returns>
     [HttpPatch("{id}")]
     [Authorize(Roles = "Publisher,Admin")]
     public ActionResult<GameResponseDTO> UpdateGame(int id, [FromBody] UpdateGameRequestDTO updatedGame)
     {
-        var updated = _gameService.UpdateGame(id, updatedGame);
+        // Extract user info from JWT claims
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        var userRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+
+        if (string.IsNullOrEmpty(userIdClaim) || string.IsNullOrEmpty(userRole) || !int.TryParse(userIdClaim, out int userId))
+        {
+            return Unauthorized();
+        }
+
+        var updated = _gameService.UpdateGame(id, updatedGame, userId, userRole);
         if (updated == null)
         {
-            return NotFound();
+            return NotFound(); // Could be not found or unauthorized (publisher trying to update someone else's game)
         }
         return Ok(updated);
     }
