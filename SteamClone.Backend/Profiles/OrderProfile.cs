@@ -8,8 +8,13 @@ namespace SteamClone.Backend.Profiles
     {
         public OrderProfile()
         {
-            CreateMap<Order, OrderResponseDto>();
-            CreateMap<CartItem, OrderItemDto>();
+            CreateMap<Order, OrderResponseDto>()
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
+
+            CreateMap<OrderItem, OrderItemDto>()
+                .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Game.Title))
+                .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Price))
+                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.Game.ImageUrl));
         }
     }
 }

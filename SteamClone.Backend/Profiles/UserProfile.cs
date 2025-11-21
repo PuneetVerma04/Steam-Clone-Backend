@@ -10,7 +10,8 @@ public class UserProfile : Profile
     {
         CreateMap<User, UserDto>()
             .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.ToString()));
-        CreateMap<UpdateUserDto, User>();
+        CreateMap<UpdateUserDto, User>()
+            .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
         CreateMap<RegisterDto, User>()
             .ForMember(dest => dest.Role, opt => opt.Ignore()) // Role is set manually in the controller
             .ForMember(dest => dest.PasswordHash, opt => opt.Ignore()) // Password is hashed separately

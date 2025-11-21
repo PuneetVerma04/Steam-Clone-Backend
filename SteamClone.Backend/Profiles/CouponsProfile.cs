@@ -8,7 +8,7 @@ public class CouponsProfile : Profile
 {
     public CouponsProfile()
     {
-        CreateMap<Coupons, CouponDto>();
-        CreateMap<CreateCouponDto, Coupons>();
+        CreateMap<Coupon, CouponDto>();
+        CreateMap<CreateCouponDto, Coupon>();
     }
 }

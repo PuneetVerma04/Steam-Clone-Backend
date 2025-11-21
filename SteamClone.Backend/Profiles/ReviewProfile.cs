@@ -8,7 +8,9 @@ public class ReviewProfile : Profile
 {
     public ReviewProfile()
     {
-        CreateMap<Reviews, ReviewDto>();
-        CreateMap<ReviewCreateDto, Reviews>();
+        CreateMap<Review, ReviewDto>()
+            .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.User.Username))
+            .ForMember(dest => dest.GameTitle, opt => opt.MapFrom(src => src.Game.Title));
+        CreateMap<ReviewCreateDto, Review>();
     }
 }
