@@ -21,11 +21,22 @@ public class Game
     public required string Genre { get; set; }
 
     /// <summary>Name of the game publisher/developer</summary>
-    public required string Publisher { get; set; }
+    public required int PublisherId { get; set; }
+    public User Publisher { get; set; } = null!;
 
     /// <summary>Official release date of the game</summary>
     public required DateTime ReleaseDate { get; set; }
 
     /// <summary>URL to the game's cover image or thumbnail</summary>
     public required string ImageUrl { get; set; }
+
+    // Navigation properties
+    /// <summary>Collection of reviews written for this game</summary>
+    public List<Review> Reviews { get; set; } = new();
+
+    /// <summary>Collection of cart items containing this game</summary>
+    public List<CartItem> CartItems { get; set; } = new();
+
+    /// <summary>Collection of order items containing this game</summary>
+    public List<OrderItem> OrderItems { get; set; } = new();
 }

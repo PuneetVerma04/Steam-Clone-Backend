@@ -32,10 +32,10 @@ public class BackendDbContext : DbContext
     public DbSet<OrderItem> OrderItems { get; set; }
 
     /// <summary>Table for game reviews</summary>
-    public DbSet<Reviews> Reviews { get; set; }
+    public DbSet<Review> Reviews { get; set; }
 
     /// <summary>Table for promotional coupons</summary>
-    public DbSet<Coupons> Coupons { get; set; }
+    public DbSet<Coupon> Coupons { get; set; }
 
     /// <summary>
     /// Configures entity relationships, constraints, and database schema
@@ -85,14 +85,19 @@ public class BackendDbContext : DbContext
             entity.Property(g => g.Genre)
                 .IsRequired()
                 .HasMaxLength(100);
-            entity.Property(g => g.Publisher)
-                .IsRequired()
-                .HasMaxLength(255);
+            entity.Property(g => g.PublisherId)
+                .IsRequired();
             entity.Property(g => g.ReleaseDate)
                 .IsRequired();
             entity.Property(g => g.ImageUrl)
                 .IsRequired()
                 .HasMaxLength(500);
+
+            // Game -> Publisher (User) relationship
+            entity.HasOne(g => g.Publisher)
+                .WithMany(u => u.PublishedGames)
+                .HasForeignKey(g => g.PublisherId)
+                .OnDelete(DeleteBehavior.Restrict); // Prevent deletion of publishers with games
         });
 
         // Configure CartItem entity with composite key and relationships
@@ -103,10 +108,17 @@ public class BackendDbContext : DbContext
             entity.Property(ci => ci.Quantity)
                 .IsRequired();
 
-            entity.HasOne(ci => ci.Game) // Each cart item references one game
-                .WithMany()
+            // CartItem -> User relationship
+            entity.HasOne(ci => ci.User)
+                .WithMany(u => u.CartItems)
+                .HasForeignKey(ci => ci.UserId)
+                .OnDelete(DeleteBehavior.Restrict); // Remove cart items when user is deleted
+
+            // CartItem -> Game relationship
+            entity.HasOne(ci => ci.Game)
+                .WithMany(g => g.CartItems)
                 .HasForeignKey(ci => ci.GameId)
-                .OnDelete(DeleteBehavior.Cascade); // Remove cart item when game is deleted
+                .OnDelete(DeleteBehavior.Restrict); // Remove cart item when game is deleted
         });
 
         // Configure Order entity with status enum conversion
@@ -130,8 +142,11 @@ public class BackendDbContext : DbContext
                 .IsRequired()
                 .HasMaxLength(50);
 
-            // Items are stored in a separate OrderItem table, not as JSON
-            entity.Ignore(o => o.Items);
+            // Order -> User relationship
+            entity.HasOne(o => o.User)
+                .WithMany(u => u.Orders)
+                .HasForeignKey(o => o.UserId)
+                .OnDelete(DeleteBehavior.Restrict); // Prevent deletion of users with orders
         });
 
         modelBuilder.Entity<OrderItem>(entity =>
@@ -150,10 +165,22 @@ public class BackendDbContext : DbContext
             entity.Property(oi => oi.Price)
                 .IsRequired()
                 .HasColumnType("decimal(18,2)"); // Precision for currency
+
+            // OrderItem -> Order relationship
+            entity.HasOne(oi => oi.Order)
+                .WithMany(o => o.Items)
+                .HasForeignKey(oi => oi.OrderId)
+                .OnDelete(DeleteBehavior.Cascade); // Remove order items when order is deleted
+
+            // OrderItem -> Game relationship
+            entity.HasOne(oi => oi.Game)
+                .WithMany(g => g.OrderItems)
+                .HasForeignKey(oi => oi.GameId)
+                .OnDelete(DeleteBehavior.Restrict); // Prevent deletion of games that have been ordered
         });
 
         // Configure Reviews entity with unique constraint per user-game pair
-        modelBuilder.Entity<Reviews>(entity =>
+        modelBuilder.Entity<Review>(entity =>
         {
             entity.HasKey(r => r.ReviewId); // Primary Key
 
@@ -175,10 +202,22 @@ public class BackendDbContext : DbContext
 
             entity.HasIndex(r => new { r.UserId, r.GameId }) // One review per user per game
                 .IsUnique();
+
+            // Review -> User relationship
+            entity.HasOne(r => r.User)
+                .WithMany(u => u.Reviews)
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Restrict); // Remove reviews when user is deleted
+
+            // Review -> Game relationship
+            entity.HasOne(r => r.Game)
+                .WithMany(g => g.Reviews)
+                .HasForeignKey(r => r.GameId)
+                .OnDelete(DeleteBehavior.Restrict); // Remove reviews when game is deleted
         });
 
-        // Configure Coupons entity with unique code constraint
-        modelBuilder.Entity<Coupons>(entity =>
+        // Configure Coupon entity with unique code constraint
+        modelBuilder.Entity<Coupon>(entity =>
         {
             entity.HasKey(c => c.CouponId); // Primary Key
 

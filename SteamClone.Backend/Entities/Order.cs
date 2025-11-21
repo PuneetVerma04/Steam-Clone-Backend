@@ -41,5 +41,5 @@ public class Order
     public DateTime OrderDate { get; set; } = DateTime.UtcNow;
 
     /// <summary>Current status of the order (Pending, Completed, etc.)</summary>
-    public OrderStatus Status { get; set; } = OrderStatus.Completed;
+    public OrderStatus Status { get; set; } = OrderStatus.Pending;
 }

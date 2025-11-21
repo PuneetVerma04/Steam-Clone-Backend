@@ -38,4 +38,17 @@ public class User
 
     /// <summary>Timestamp of the last profile update (null if never updated)</summary>
     public DateTime? UpdatedAt { get; set; }
+
+    // Navigation properties
+    /// <summary>Collection of orders placed by this user</summary>
+    public List<Order> Orders { get; set; } = new();
+
+    /// <summary>Collection of reviews written by this user</summary>
+    public List<Review> Reviews { get; set; } = new();
+
+    /// <summary>Collection of items in this user's shopping cart</summary>
+    public List<CartItem> CartItems { get; set; } = new();
+
+    /// <summary>Collection of games published by this user (for Publisher role)</summary>
+    public List<Game> PublishedGames { get; set; } = new();
 }
