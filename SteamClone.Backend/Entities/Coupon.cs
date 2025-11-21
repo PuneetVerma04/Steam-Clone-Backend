@@ -3,7 +3,7 @@ namespace SteamClone.Backend.Entities;
 /// <summary>
 /// Represents a promotional discount coupon
 /// </summary>
-public class Coupons
+public class Coupon
 {
     /// <summary>Unique identifier for the coupon</summary>
     public int CouponId { get; set; }
