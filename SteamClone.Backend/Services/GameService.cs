@@ -36,6 +36,96 @@ public class GameService : IGameService
     }
 
     /// <summary>
+    /// Retrieves games with pagination, filtering, and sorting
+    /// </summary>
+    /// <param name="queryParameters">Query parameters for filtering, sorting, and pagination</param>
+    /// <returns>Paged response with games and metadata</returns>
+    public async Task<PagedGameResponse> GetGamesAsync(GameQueryParameters queryParameters)
+    {
+        queryParameters.ValidateAndAdjust();
+
+        // Start with base query
+        var query = _dbContext.Games.Include(g => g.Publisher).AsQueryable();
+
+        // Apply filters
+        if (!string.IsNullOrEmpty(queryParameters.Genre))
+        {
+            query = query.Where(g => g.Genre.ToLower().Contains(queryParameters.Genre.ToLower()));
+        }
+
+        if (!string.IsNullOrEmpty(queryParameters.SearchTerm))
+        {
+            query = query.Where(g => g.Title.ToLower().Contains(queryParameters.SearchTerm.ToLower()) ||
+                                    g.Description.ToLower().Contains(queryParameters.SearchTerm.ToLower()));
+        }
+
+        if (queryParameters.MinPrice.HasValue)
+        {
+            query = query.Where(g => g.Price >= queryParameters.MinPrice.Value);
+        }
+
+        if (queryParameters.MaxPrice.HasValue)
+        {
+            query = query.Where(g => g.Price <= queryParameters.MaxPrice.Value);
+        }
+
+        if (queryParameters.PublisherId.HasValue)
+        {
+            query = query.Where(g => g.PublisherId == queryParameters.PublisherId.Value);
+        }
+
+        if (queryParameters.ReleaseDateFrom.HasValue)
+        {
+            query = query.Where(g => g.ReleaseDate >= queryParameters.ReleaseDateFrom.Value);
+        }
+
+        if (queryParameters.ReleaseDateTo.HasValue)
+        {
+            query = query.Where(g => g.ReleaseDate <= queryParameters.ReleaseDateTo.Value);
+        }
+
+        // Get total count before pagination
+        var totalCount = await query.CountAsync();
+
+        // Apply sorting
+        query = ApplySorting(query, queryParameters.SortBy, queryParameters.SortOrder);
+
+        // Apply pagination
+        var games = await query
+            .Skip((queryParameters.PageNumber - 1) * queryParameters.PageSize)
+            .Take(queryParameters.PageSize)
+            .ToListAsync();
+
+        var gameDtos = _mapper.Map<IEnumerable<GameResponseDTO>>(games);
+
+        return new PagedGameResponse
+        {
+            Games = gameDtos,
+            PageNumber = queryParameters.PageNumber,
+            PageSize = queryParameters.PageSize,
+            TotalCount = totalCount,
+            TotalPages = (int)Math.Ceiling(totalCount / (double)queryParameters.PageSize)
+        };
+    }
+
+    /// <summary>
+    /// Applies sorting to the game query
+    /// </summary>
+    private IQueryable<Game> ApplySorting(IQueryable<Game> query, string? sortBy, string sortOrder)
+    {
+        var isDescending = sortOrder.ToLower() == "desc";
+
+        return sortBy?.ToLower() switch
+        {
+            "title" => isDescending ? query.OrderByDescending(g => g.Title) : query.OrderBy(g => g.Title),
+            "price" => isDescending ? query.OrderByDescending(g => g.Price) : query.OrderBy(g => g.Price),
+            "releasedate" => isDescending ? query.OrderByDescending(g => g.ReleaseDate) : query.OrderBy(g => g.ReleaseDate),
+            "genre" => isDescending ? query.OrderByDescending(g => g.Genre) : query.OrderBy(g => g.Genre),
+            _ => query.OrderBy(g => g.Id) // Default sorting by ID
+        };
+    }
+
+    /// <summary>
     /// Retrieves a specific game by its identifier
     /// </summary>
     /// <param name="id">Game ID</param>

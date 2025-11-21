@@ -30,14 +30,27 @@ public class GamesController : ControllerBase
     }
 
     /// <summary>
-    /// Retrieves all games with optional filtering by genre and price
+    /// Retrieves all games with optional filtering, sorting, and pagination
+    /// </summary>
+    /// <param name="queryParameters">Query parameters for filtering, sorting, and pagination</param>
+    /// <returns>Paged collection of games matching the criteria</returns>
+    [HttpGet]
+    [AllowAnonymous]
+    public async Task<ActionResult<PagedGameResponse>> GetGames([FromQuery] GameQueryParameters queryParameters)
+    {
+        var result = await _gameService.GetGamesAsync(queryParameters);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Legacy endpoint: Retrieves all games with basic filtering (deprecated - use GET with query params instead)
     /// </summary>
     /// <param name="genre">Optional genre filter (case-insensitive)</param>
     /// <param name="maxPrice">Optional maximum price filter</param>
     /// <returns>Collection of games matching the filter criteria</returns>
-    [HttpGet]
+    [HttpGet("all")]
     [AllowAnonymous]
-    public async Task<ActionResult<IEnumerable<GameResponseDTO>>> GetGames(string? genre = null, decimal? maxPrice = null)
+    public async Task<ActionResult<IEnumerable<GameResponseDTO>>> GetAllGames(string? genre = null, decimal? maxPrice = null)
     {
         var query = _dbContext.Games.Include(g => g.Publisher).AsQueryable();
 
