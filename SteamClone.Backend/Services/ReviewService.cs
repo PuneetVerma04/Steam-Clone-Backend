@@ -30,6 +30,8 @@ public class ReviewService : IReviewService
     public IEnumerable<ReviewDto> GetReviewForGame(int gameId)
     {
         var gameReviews = _dbContext.Reviews
+            .Include(r => r.User)
+            .Include(r => r.Game)
             .Where(r => r.GameId == gameId)
             .ToList();
         return _mapper.Map<IEnumerable<ReviewDto>>(gameReviews);
@@ -42,7 +44,10 @@ public class ReviewService : IReviewService
     /// <returns>Review DTO if found, null otherwise</returns>
     public ReviewDto? GetReviewById(int reviewId)
     {
-        var review = _dbContext.Reviews.Find(reviewId);
+        var review = _dbContext.Reviews
+            .Include(r => r.User)
+            .Include(r => r.Game)
+            .FirstOrDefault(r => r.ReviewId == reviewId);
         return review == null ? null : _mapper.Map<ReviewDto>(review);
     }
 
@@ -55,7 +60,7 @@ public class ReviewService : IReviewService
     /// <returns>Created review DTO with generated ID</returns>
     public ReviewDto AddReview(int gameId, int userId, ReviewCreateDto newReviewDto)
     {
-        var newReview = _mapper.Map<Reviews>(newReviewDto);
+        var newReview = _mapper.Map<Review>(newReviewDto);
         newReview.GameId = gameId;
         newReview.UserId = userId;
         newReview.ReviewDate = DateTime.UtcNow;
@@ -63,7 +68,13 @@ public class ReviewService : IReviewService
         _dbContext.Reviews.Add(newReview);
         _dbContext.SaveChanges();
 
-        return _mapper.Map<ReviewDto>(newReview);
+        // Reload review with navigation properties
+        var createdReview = _dbContext.Reviews
+            .Include(r => r.User)
+            .Include(r => r.Game)
+            .FirstOrDefault(r => r.ReviewId == newReview.ReviewId);
+
+        return _mapper.Map<ReviewDto>(createdReview);
     }
 
     /// <summary>

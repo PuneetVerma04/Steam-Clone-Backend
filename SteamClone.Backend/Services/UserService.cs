@@ -92,6 +92,21 @@ public class UserService : IUserService
     }
 
     /// <summary>
+    /// Updates a user's password securely with hashing
+    /// </summary>
+    /// <param name="user">User entity to update</param>
+    /// <param name="newPassword">New plain text password to hash and store</param>
+    /// <returns>Updated user entity</returns>
+    public User UpdatePassword(User user, string newPassword)
+    {
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+        user.UpdatedAt = DateTime.UtcNow;
+        _dbContext.Users.Update(user);
+        _dbContext.SaveChanges();
+        return user;
+    }
+
+    /// <summary>
     /// Retrieves all registered users
     /// </summary>
     /// <returns>Collection of all user entities</returns>

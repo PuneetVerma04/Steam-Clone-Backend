@@ -50,7 +50,7 @@ public class CouponService : ICouponService
     /// <returns>Created coupon DTO with generated ID</returns>
     public CouponDto CreateCoupon(CreateCouponDto newCouponDto)
     {
-        var newCoupon = _mapper.Map<Coupons>(newCouponDto);
+        var newCoupon = _mapper.Map<Coupon>(newCouponDto);
 
         // Set default values for new coupon
         newCoupon.IsActive = true;
@@ -77,9 +77,8 @@ public class CouponService : ICouponService
             return null;
         }
 
-        // Mark coupon as inactive and set expiration to current time
+        // Mark coupon as inactive (preserve original expiration date)
         coupon.IsActive = false;
-        coupon.ExpirationDate = DateTime.UtcNow;
 
         _dbContext.SaveChanges();
 
