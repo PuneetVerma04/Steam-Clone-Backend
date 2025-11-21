@@ -1,13 +1,18 @@
 using FluentValidation;
 using SteamClone.Backend.DTOs.Game;
+using SteamClone.Backend.Entities;
 
 namespace SteamClone.Backend.Validators.Game;
 
 public class UpdateGameRequestDTOValidator : AbstractValidator<UpdateGameRequestDTO>
 {
-    public UpdateGameRequestDTOValidator()
+    private readonly BackendDbContext _dbContext;
+
+    public UpdateGameRequestDTOValidator(BackendDbContext dbContext)
     {
-        RuleFor(x => x.Id).ValidId();
+        _dbContext = dbContext;
+
+        // Id field removed from DTO - it comes from route parameter
 
         When(x => x.Title != null, () =>
         {
@@ -30,11 +35,9 @@ public class UpdateGameRequestDTOValidator : AbstractValidator<UpdateGameRequest
                 .NotEmpty().WithMessage("Genre cannot be empty.");
         });
 
-        When(x => x.Publisher != null, () =>
-        {
-            RuleFor(x => x.Publisher!)
-                .NotEmpty().WithMessage("Publisher cannot be empty.");
-        });
+        RuleFor(x => x.PublisherId)
+            .Null()
+            .WithMessage("PublisherId cannot be changed.");
 
         When(x => x.ReleaseDate != null, () =>
         {
@@ -45,5 +48,10 @@ public class UpdateGameRequestDTOValidator : AbstractValidator<UpdateGameRequest
         {
             RuleFor(x => x.ImageUrl!).ValidUrl();
         });
+    }
+
+    private bool BeAValidPublisher(int publisherId)
+    {
+        return _dbContext.Users.Any(u => u.Id == publisherId && u.Role == UserRole.Publisher);
     }
 }
