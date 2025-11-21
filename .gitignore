@@ -364,3 +364,11 @@ FodyWeavers.xsd
 
 # Entity Framework Migrations
 **/Migrations/
+
+# Test project - ignore everything in the testing folder
+SteamClone.Backend.Tests/
+
+#Files to ignore
+Rough.txt
+
+Docs/
