@@ -15,118 +15,7 @@ public static class DbSeeder
   /// <param name="context">Database context to seed</param>
   public static void SeedDatabase(BackendDbContext context)
   {
-    // Seed Games - populate catalog with sample games
-    if (!context.Games.Any())
-    {
-      var games = new List<Game>
-        {
-            new Game
-            {
-                Title = "Elden Ring",
-                Description = "An action RPG developed by FromSoftware.",
-                Price = 59.99m,
-                Genre = "RPG",
-                Publisher = "Bandai Namco",
-                ReleaseDate = new DateTime(2022, 2, 25),
-                ImageUrl = "https://example.com/eldenring.jpg"
-            },
-            new Game
-            {
-                Title = "Cyberpunk 2077",
-                Description = "Open-world RPG set in Night City.",
-                Price = 39.99m,
-                Genre = "Action RPG",
-                Publisher = "CD Projekt",
-                ReleaseDate = new DateTime(2020, 12, 10),
-                ImageUrl = "https://example.com/cyberpunk.jpg"
-            },
-            new Game
-            {
-                Title = "God of War Ragnarök",
-                Description = "Action-adventure featuring Kratos and Atreus.",
-                Price = 69.99m,
-                Genre = "Action",
-                Publisher = "Sony Interactive Entertainment",
-                ReleaseDate = new DateTime(2022, 11, 9),
-                ImageUrl = "https://example.com/gowr.jpg"
-            },
-            new Game
-            {
-                Title = "The Witcher 3",
-                Description = "Story-driven open-world RPG with Geralt.",
-                Price = 29.99m,
-                Genre = "RPG",
-                Publisher = "CD Projekt",
-                ReleaseDate = new DateTime(2015, 5, 19),
-                ImageUrl = "https://example.com/witcher3.jpg"
-            },
-            new Game
-            {
-                Title = "Red Dead Redemption 2",
-                Description = "Open-world western action-adventure.",
-                Price = 49.99m,
-                Genre = "Action Adventure",
-                Publisher = "Rockstar Games",
-                ReleaseDate = new DateTime(2018, 10, 26),
-                ImageUrl = "https://example.com/rdr2.jpg"
-            },
-            new Game
-            {
-                Title = "Hades",
-                Description = "Action roguelike dungeon crawler.",
-                Price = 19.99m,
-                Genre = "Roguelike",
-                Publisher = "Supergiant Games",
-                ReleaseDate = new DateTime(2020, 9, 17),
-                ImageUrl = "https://example.com/hades.jpg"
-            },
-            new Game
-            {
-                Title = "Minecraft",
-                Description = "Sandbox survival and building game.",
-                Price = 26.95m,
-                Genre = "Sandbox",
-                Publisher = "Mojang",
-                ReleaseDate = new DateTime(2011, 11, 18),
-                ImageUrl = "https://example.com/minecraft.jpg"
-            },
-            new Game
-            {
-                Title = "Dark Souls III",
-                Description = "Challenging action RPG in the Souls series.",
-                Price = 39.99m,
-                Genre = "RPG",
-                Publisher = "Bandai Namco",
-                ReleaseDate = new DateTime(2016, 3, 24),
-                ImageUrl = "https://example.com/darksouls3.jpg"
-            },
-            new Game
-            {
-                Title = "Grand Theft Auto V",
-                Description = "Open-world crime and adventure game.",
-                Price = 29.99m,
-                Genre = "Action Adventure",
-                Publisher = "Rockstar Games",
-                ReleaseDate = new DateTime(2013, 9, 17),
-                ImageUrl = "https://example.com/gtav.jpg"
-            },
-            new Game
-            {
-                Title = "Hollow Knight",
-                Description = "Metroidvania-style action-adventure.",
-                Price = 14.99m,
-                Genre = "Metroidvania",
-                Publisher = "Team Cherry",
-                ReleaseDate = new DateTime(2017, 2, 24),
-                ImageUrl = "https://example.com/hollowknight.jpg"
-            }
-        };
-
-      context.Games.AddRange(games);
-      context.SaveChanges();
-    }
-
-    // Seed Users - create sample user accounts with different roles
+    // Seed Users first - needed for game publishers and other relationships
     if (!context.Users.Any())
     {
       var users = new List<User>
@@ -177,12 +66,126 @@ public static class DbSeeder
       context.SaveChanges();
     }
 
+    // Seed Games - populate catalog with sample games (requires users to exist)
+    if (!context.Games.Any())
+    {
+      // Get publisher user (bob_jones with Publisher role)
+      var publisherUser = context.Users.First(u => u.Role == UserRole.Publisher);
+
+      var games = new List<Game>
+        {
+            new Game
+            {
+                Title = "Elden Ring",
+                Description = "An action RPG developed by FromSoftware.",
+                Price = 59.99m,
+                Genre = "RPG",
+                PublisherId = publisherUser.Id,
+                ReleaseDate = new DateTime(2022, 2, 25),
+                ImageUrl = "https://example.com/eldenring.jpg"
+            },
+            new Game
+            {
+                Title = "Cyberpunk 2077",
+                Description = "Open-world RPG set in Night City.",
+                Price = 39.99m,
+                Genre = "Action RPG",
+                PublisherId = publisherUser.Id,
+                ReleaseDate = new DateTime(2020, 12, 10),
+                ImageUrl = "https://example.com/cyberpunk.jpg"
+            },
+            new Game
+            {
+                Title = "God of War Ragnarök",
+                Description = "Action-adventure featuring Kratos and Atreus.",
+                Price = 69.99m,
+                Genre = "Action",
+                PublisherId = publisherUser.Id,
+                ReleaseDate = new DateTime(2022, 11, 9),
+                ImageUrl = "https://example.com/gowr.jpg"
+            },
+            new Game
+            {
+                Title = "The Witcher 3",
+                Description = "Story-driven open-world RPG with Geralt.",
+                Price = 29.99m,
+                Genre = "RPG",
+                PublisherId = publisherUser.Id,
+                ReleaseDate = new DateTime(2015, 5, 19),
+                ImageUrl = "https://example.com/witcher3.jpg"
+            },
+            new Game
+            {
+                Title = "Red Dead Redemption 2",
+                Description = "Open-world western action-adventure.",
+                Price = 49.99m,
+                Genre = "Action Adventure",
+                PublisherId = publisherUser.Id,
+                ReleaseDate = new DateTime(2018, 10, 26),
+                ImageUrl = "https://example.com/rdr2.jpg"
+            },
+            new Game
+            {
+                Title = "Hades",
+                Description = "Action roguelike dungeon crawler.",
+                Price = 19.99m,
+                Genre = "Roguelike",
+                PublisherId = publisherUser.Id,
+                ReleaseDate = new DateTime(2020, 9, 17),
+                ImageUrl = "https://example.com/hades.jpg"
+            },
+            new Game
+            {
+                Title = "Minecraft",
+                Description = "Sandbox survival and building game.",
+                Price = 26.95m,
+                Genre = "Sandbox",
+                PublisherId = publisherUser.Id,
+                ReleaseDate = new DateTime(2011, 11, 18),
+                ImageUrl = "https://example.com/minecraft.jpg"
+            },
+            new Game
+            {
+                Title = "Dark Souls III",
+                Description = "Challenging action RPG in the Souls series.",
+                Price = 39.99m,
+                Genre = "RPG",
+                PublisherId = publisherUser.Id,
+                ReleaseDate = new DateTime(2016, 3, 24),
+                ImageUrl = "https://example.com/darksouls3.jpg"
+            },
+            new Game
+            {
+                Title = "Grand Theft Auto V",
+                Description = "Open-world crime and adventure game.",
+                Price = 29.99m,
+                Genre = "Action Adventure",
+                PublisherId = publisherUser.Id,
+                ReleaseDate = new DateTime(2013, 9, 17),
+                ImageUrl = "https://example.com/gtav.jpg"
+            },
+            new Game
+            {
+                Title = "Hollow Knight",
+                Description = "Metroidvania-style action-adventure.",
+                Price = 14.99m,
+                Genre = "Metroidvania",
+                PublisherId = publisherUser.Id,
+                ReleaseDate = new DateTime(2017, 2, 24),
+                ImageUrl = "https://example.com/hollowknight.jpg"
+            }
+        };
+
+      context.Games.AddRange(games);
+      context.SaveChanges();
+    }
+
     // Seed Coupons - create promotional discount codes
     if (!context.Coupons.Any())
     {
-      var coupons = new List<Coupons>
+      var coupons = new List<Coupon>
       {
-        new Coupons
+        new Coupon
         {
           Code = "WELCOME10",
           CouponName = "Welcome 10%",
@@ -191,7 +194,7 @@ public static class DbSeeder
           CreatedAt = DateTime.UtcNow,
           ExpirationDate = DateTime.UtcNow.AddMonths(3)
         },
-        new Coupons
+        new Coupon
         {
           Code = "SUMMER25",
           CouponName = "Summer Sale 25%",
@@ -298,12 +301,12 @@ public static class DbSeeder
     // Seed Reviews - create sample game reviews from users
     if (!context.Reviews.Any())
     {
-      var reviews = new List<Reviews>
+      var reviews = new List<Review>
       {
-        new Reviews { UserId = 1, GameId = 1, Rating = 5, Comment = "Amazing game!", ReviewDate = DateTime.UtcNow.AddDays(-20) },
-        new Reviews { UserId = 2, GameId = 1, Rating = 4, Comment = "Great but some bugs.", ReviewDate = DateTime.UtcNow.AddDays(-18) },
-        new Reviews { UserId = 3, GameId = 4, Rating = 5, Comment = "Masterpiece.", ReviewDate = DateTime.UtcNow.AddDays(-30) },
-        new Reviews { UserId = 4, GameId = 2, Rating = 3, Comment = "It's okay.", ReviewDate = DateTime.UtcNow.AddDays(-7) }
+        new Review{ UserId = 1, GameId = 1, Rating = 5, Comment = "Amazing game!", ReviewDate = DateTime.UtcNow.AddDays(-20) },
+        new Review { UserId = 2, GameId = 1, Rating = 4, Comment = "Great but some bugs.", ReviewDate = DateTime.UtcNow.AddDays(-18) },
+        new Review { UserId = 3, GameId = 4, Rating = 5, Comment = "Masterpiece.", ReviewDate = DateTime.UtcNow.AddDays(-30) },
+        new Review { UserId = 4, GameId = 2, Rating = 3, Comment = "It's okay.", ReviewDate = DateTime.UtcNow.AddDays(-7) }
       };
 
       context.Reviews.AddRange(reviews);
