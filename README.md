@@ -250,7 +250,6 @@ Authorization: Bearer <your-jwt-token>
 
 ### API Documentation
 
-- **Microsoft.AspNetCore.OpenApi** (9.0.9) - OpenAPI support
 - **Swashbuckle.AspNetCore** (9.0.6) - Swagger documentation
 
 ## 📊 Database Schema
@@ -270,4 +269,3 @@ The application uses the following main entities:
 **Puneet Verma**
 
 - GitHub: [@PuneetVerma04](https://github.com/PuneetVerma04)
-- Repository: [Game-Store-Web-App-Backend](https://github.com/PuneetVerma04/Steam-Clone-Backend)
