@@ -11,6 +11,7 @@ using System.Text;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using SteamClone.Backend.Validators.Game;
+using SteamClone.Backend.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -77,6 +78,22 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Configure CORS for frontend integration
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins(
+            "https://localhost:7001",   // Blazor Server/WASM HTTPS default
+            "http://localhost:5000",    // Blazor Server HTTP default
+            "http://localhost:5001"   // Blazor WebAssembly default
+        )
+        .AllowAnyMethod()
+        .AllowAnyHeader()
+        .AllowCredentials();
+    });
+});
+
 var app = builder.Build();
 
 // Seed database with initial data on application startup
@@ -93,9 +110,16 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();    // Enable Swagger UI for API testing
 }
 
+// Add global exception handling middleware
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
 // Configure middleware pipeline
+app.UseCors("AllowFrontend");  // Enable CORS for frontend requests (must be before auth)
 app.UseAuthentication();   // Enable JWT authentication
 app.UseAuthorization();    // Enable role-based authorization
 app.MapControllers();      // Map controller endpoints
 app.Run();
+
+// Make Program class accessible for integration tests
+public partial class Program { }
 
