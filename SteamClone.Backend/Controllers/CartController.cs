@@ -45,10 +45,10 @@ public class CartController : ControllerBase
     /// </summary>
     /// <returns>Collection of cart items with game details</returns>
     [HttpGet]
-    public IActionResult GetCart()
+    public async Task<IActionResult> GetCart()
     {
         var userId = GetUserIdFromClaims();
-        var items = _cartService.GetCartItems(userId);
+        var items = await _cartService.GetCartItemsAsync(userId);
         return Ok(items);
     }
 
@@ -58,20 +58,20 @@ public class CartController : ControllerBase
     /// <param name="request">Cart request containing game ID and quantity</param>
     /// <returns>Updated cart items after addition</returns>
     [HttpPost("add")]
-    public IActionResult AddToCart([FromBody] CartRequest request)
+    public async Task<IActionResult> AddToCart([FromBody] CartRequest request)
     {
         var userId = GetUserIdFromClaims();
 
         // Verify game exists before adding to cart
-        var game = _gameService.GetById(request.GameId);
+        var game = await _gameService.GetByIdAsync(request.GameId);
         if (game == null)
         {
             return NotFound("Game not found.");
         }
 
         // Add or update cart item
-        _cartService.AddToCart(userId, request.GameId, request.Quantity);
-        var items = _cartService.GetCartItems(userId);
+        await _cartService.AddToCartAsync(userId, request.GameId, request.Quantity);
+        var items = await _cartService.GetCartItemsAsync(userId);
         return Ok(items);
     }
 
@@ -81,14 +81,14 @@ public class CartController : ControllerBase
     /// <param name="request">Cart request with updated quantity</param>
     /// <returns>Updated cart items after modification</returns>
     [HttpPatch("update")]
-    public IActionResult UpdateCartItem([FromBody] CartRequest request)
+    public async Task<IActionResult> UpdateCartItem([FromBody] CartRequest request)
     {
         var userId = GetUserIdFromClaims();
 
         // Update quantity or remove item if quantity is 0 or negative
-        _cartService.UpdateCartItem(userId, request.GameId, request.Quantity);
+        await _cartService.UpdateCartItemAsync(userId, request.GameId, request.Quantity);
 
-        var items = _cartService.GetCartItems(userId);
+        var items = await _cartService.GetCartItemsAsync(userId);
         return Ok(items);
     }
 }

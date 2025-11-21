@@ -34,10 +34,10 @@ public class AuthController : ControllerBase
     /// <param name="registerDto">User registration details including username, email, and password</param>
     /// <returns>JWT token for immediate authentication after successful registration</returns>
     [HttpPost("register")]
-    public IActionResult Register([FromBody] RegisterDto registerDto)
+    public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
     {
         // Check if email is already in use to prevent duplicate accounts
-        if (_userService.GetByEmail(registerDto.Email) is not null)
+        if (await _userService.GetByEmailAsync(registerDto.Email) is not null)
             return BadRequest("Email already registered");
 
         // Map DTO to User entity and set default role
@@ -45,7 +45,7 @@ public class AuthController : ControllerBase
         newUser.Role = UserRole.Player; // All new registrations default to Player role
 
         // Create user with hashed password
-        var createdUser = _userService.Create(newUser, registerDto.Password);
+        var createdUser = await _userService.CreateAsync(newUser, registerDto.Password);
         if (createdUser == null)
             return StatusCode(500, "User creation failed");
 
@@ -61,10 +61,10 @@ public class AuthController : ControllerBase
     /// <param name="loginDto">Login credentials (email and password)</param>
     /// <returns>Authentication response with JWT token and user details</returns>
     [HttpPost("login")]
-    public IActionResult Login([FromBody] LoginDto loginDto)
+    public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
     {
         // Retrieve user by email
-        var user = _userService.GetByEmail(loginDto.Email);
+        var user = await _userService.GetByEmailAsync(loginDto.Email);
 
         // Validate user exists
         if (user is null) return Unauthorized("Invalid email");

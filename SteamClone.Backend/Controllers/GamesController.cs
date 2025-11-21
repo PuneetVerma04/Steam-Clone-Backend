@@ -37,7 +37,7 @@ public class GamesController : ControllerBase
     /// <returns>Collection of games matching the filter criteria</returns>
     [HttpGet]
     [AllowAnonymous]
-    public ActionResult<IEnumerable<GameResponseDTO>> GetGames(string? genre = null, decimal? maxPrice = null)
+    public async Task<ActionResult<IEnumerable<GameResponseDTO>>> GetGames(string? genre = null, decimal? maxPrice = null)
     {
         var query = _dbContext.Games.Include(g => g.Publisher).AsQueryable();
 
@@ -47,7 +47,7 @@ public class GamesController : ControllerBase
         if (maxPrice.HasValue)
             query = query.Where(g => g.Price <= maxPrice.Value);
 
-        var games = query.ToList();
+        var games = await query.ToListAsync();
         return Ok(_mapper.Map<IEnumerable<GameResponseDTO>>(games));
     }
 
@@ -58,9 +58,9 @@ public class GamesController : ControllerBase
     /// <returns>Game details if found, otherwise NotFound</returns>
     [HttpGet("{id}")]
     [AllowAnonymous]
-    public ActionResult<GameResponseDTO> GetGameById(int id)
+    public async Task<ActionResult<GameResponseDTO>> GetGameById(int id)
     {
-        var game = _gameService.GetById(id);
+        var game = await _gameService.GetByIdAsync(id);
         if (game == null)
         {
             return NotFound();
@@ -75,9 +75,9 @@ public class GamesController : ControllerBase
     /// <returns>Created game with generated ID and location header</returns>
     [HttpPost]
     [Authorize(Roles = "Publisher,Admin")]
-    public ActionResult<GameResponseDTO> CreateGame([FromBody] CreateGameRequestDTO newGame)
+    public async Task<ActionResult<GameResponseDTO>> CreateGame([FromBody] CreateGameRequestDTO newGame)
     {
-        var createdGame = _gameService.CreateGame(newGame);
+        var createdGame = await _gameService.CreateGameAsync(newGame);
         return CreatedAtAction(nameof(GetGameById), new { id = createdGame.Id }, createdGame);
     }
 
@@ -90,7 +90,7 @@ public class GamesController : ControllerBase
     /// <returns>Updated game details if found and authorized, otherwise NotFound or Forbidden</returns>
     [HttpPatch("{id}")]
     [Authorize(Roles = "Publisher,Admin")]
-    public ActionResult<GameResponseDTO> UpdateGame(int id, [FromBody] UpdateGameRequestDTO updatedGame)
+    public async Task<ActionResult<GameResponseDTO>> UpdateGame(int id, [FromBody] UpdateGameRequestDTO updatedGame)
     {
         // Extract user info from JWT claims
         var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
@@ -101,7 +101,7 @@ public class GamesController : ControllerBase
             return Unauthorized();
         }
 
-        var updated = _gameService.UpdateGame(id, updatedGame, userId, userRole);
+        var updated = await _gameService.UpdateGameAsync(id, updatedGame, userId, userRole);
         if (updated == null)
         {
             return NotFound(); // Could be not found or unauthorized (publisher trying to update someone else's game)
@@ -116,16 +116,16 @@ public class GamesController : ControllerBase
     /// <returns>NoContent if successful, NotFound if game doesn't exist</returns>
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin")]
-    public ActionResult DeleteGame(int id)
+    public async Task<ActionResult> DeleteGame(int id)
     {
         // Verify game exists before attempting deletion
-        var game = _gameService.GetById(id);
+        var game = await _gameService.GetByIdAsync(id);
         if (game == null)
         {
             return NotFound();
         }
 
-        _gameService.DeleteGame(id);
+        await _gameService.DeleteGameAsync(id);
         return NoContent();
     }
 }

@@ -28,7 +28,7 @@ public class OrderService : IOrderService
     /// <param name="userId">User ID placing the order</param>
     /// <param name="cartItems">Collection of cart items to convert to order items</param>
     /// <returns>Created order DTO with complete details</returns>
-    public OrderResponseDto CreateOrder(int userId, List<CartItem> cartItems)
+    public async Task<OrderResponseDto> CreateOrderAsync(int userId, List<CartItem> cartItems)
     {
         // Create order with items and calculate total
         var order = new Order
@@ -46,13 +46,13 @@ public class OrderService : IOrderService
         };
 
         _dbContext.Orders.Add(order);
-        _dbContext.SaveChanges();
+        await _dbContext.SaveChangesAsync();
 
         // Reload order with navigation properties for complete response
-        var createdOrder = _dbContext.Orders
+        var createdOrder = await _dbContext.Orders
             .Include(o => o.Items)
                 .ThenInclude(oi => oi.Game)
-            .FirstOrDefault(o => o.OrderId == order.OrderId);
+            .FirstOrDefaultAsync(o => o.OrderId == order.OrderId);
 
         return _mapper.Map<OrderResponseDto>(createdOrder);
     }
@@ -62,13 +62,13 @@ public class OrderService : IOrderService
     /// </summary>
     /// <param name="orderId">Order ID</param>
     /// <returns>Order DTO if found, null otherwise</returns>
-    public OrderResponseDto? GetOrderById(int orderId)
+    public async Task<OrderResponseDto?> GetOrderByIdAsync(int orderId)
     {
         // Include order items and their associated games
-        var order = _dbContext.Orders
+        var order = await _dbContext.Orders
             .Include(o => o.Items)
                 .ThenInclude(oi => oi.Game)
-            .FirstOrDefault(o => o.OrderId == orderId);
+            .FirstOrDefaultAsync(o => o.OrderId == orderId);
         return order == null ? null : _mapper.Map<OrderResponseDto>(order);
     }
 
@@ -77,13 +77,13 @@ public class OrderService : IOrderService
     /// </summary>
     /// <param name="userId">User ID whose orders to retrieve</param>
     /// <returns>Collection of order DTOs with complete information</returns>
-    public IEnumerable<OrderResponseDto> GetOrdersForUser(int userId)
+    public async Task<IEnumerable<OrderResponseDto>> GetOrdersForUserAsync(int userId)
     {
-        var orders = _dbContext.Orders
+        var orders = await _dbContext.Orders
             .Include(o => o.Items)
                 .ThenInclude(oi => oi.Game)
             .Where(o => o.UserId == userId)
-            .ToList();
+            .ToListAsync();
         return _mapper.Map<IEnumerable<OrderResponseDto>>(orders);
     }
 
@@ -91,12 +91,12 @@ public class OrderService : IOrderService
     /// Retrieves all orders in the system (admin function)
     /// </summary>
     /// <returns>Collection of all order DTOs</returns>
-    public IEnumerable<OrderResponseDto> GetAllOrders()
+    public async Task<IEnumerable<OrderResponseDto>> GetAllOrdersAsync()
     {
-        var orders = _dbContext.Orders
+        var orders = await _dbContext.Orders
             .Include(o => o.Items)
                 .ThenInclude(oi => oi.Game)
-            .ToList();
+            .ToListAsync();
         return _mapper.Map<IEnumerable<OrderResponseDto>>(orders);
     }
 
@@ -106,13 +106,13 @@ public class OrderService : IOrderService
     /// <param name="orderId">Order ID to update</param>
     /// <param name="newStatus">New order status</param>
     /// <returns>True if update successful, false if order not found</returns>
-    public bool UpdateOrderStatus(int orderId, OrderStatus newStatus)
+    public async Task<bool> UpdateOrderStatusAsync(int orderId, OrderStatus newStatus)
     {
-        var order = _dbContext.Orders.Find(orderId);
+        var order = await _dbContext.Orders.FindAsync(orderId);
         if (order == null) return false;
 
         order.Status = newStatus;
-        _dbContext.SaveChanges();
+        await _dbContext.SaveChangesAsync();
 
         return true;
     }

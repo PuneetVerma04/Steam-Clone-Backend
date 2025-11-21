@@ -5,9 +5,9 @@ namespace SteamClone.Backend.Services;
 
 public interface IOrderService
 {
-    OrderResponseDto CreateOrder(int userId, List<CartItem> cartItems);
-    OrderResponseDto? GetOrderById(int id);
-    IEnumerable<OrderResponseDto> GetOrdersForUser(int userId);
-    IEnumerable<OrderResponseDto> GetAllOrders();
-    bool UpdateOrderStatus(int orderId, OrderStatus newStatus);
+    Task<OrderResponseDto> CreateOrderAsync(int userId, List<CartItem> cartItems);
+    Task<OrderResponseDto?> GetOrderByIdAsync(int id);
+    Task<IEnumerable<OrderResponseDto>> GetOrdersForUserAsync(int userId);
+    Task<IEnumerable<OrderResponseDto>> GetAllOrdersAsync();
+    Task<bool> UpdateOrderStatusAsync(int orderId, OrderStatus newStatus);
 }

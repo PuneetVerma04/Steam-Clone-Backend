@@ -27,13 +27,13 @@ public class CartService : ICartService
     /// </summary>
     /// <param name="userId">User ID whose cart to retrieve</param>
     /// <returns>Collection of cart items with game details</returns>
-    public IEnumerable<CartItemDto> GetCartItems(int userId)
+    public async Task<IEnumerable<CartItemDto>> GetCartItemsAsync(int userId)
     {
         // Include related Game entity to provide complete cart item information
-        var items = _dbContext.CartItems
+        var items = await _dbContext.CartItems
             .Include(ci => ci.Game)
             .Where(item => item.UserId == userId)
-            .ToList();
+            .ToListAsync();
         return _mapper.Map<IEnumerable<CartItemDto>>(items);
     }
 
@@ -44,11 +44,11 @@ public class CartService : ICartService
     /// <param name="gameId">Game ID to add</param>
     /// <param name="quantity">Number of copies to add</param>
     /// <exception cref="Exception">Thrown if game is not found</exception>
-    public void AddToCart(int userId, int gameId, int quantity)
+    public async Task AddToCartAsync(int userId, int gameId, int quantity)
     {
         // Check if item already exists in cart
-        var existingItem = _dbContext.CartItems
-            .FirstOrDefault(item => item.UserId == userId && item.GameId == gameId);
+        var existingItem = await _dbContext.CartItems
+            .FirstOrDefaultAsync(item => item.UserId == userId && item.GameId == gameId);
 
         if (existingItem != null)
         {
@@ -58,7 +58,7 @@ public class CartService : ICartService
         else
         {
             // Verify game exists before adding to cart
-            var game = _dbContext.Games.Find(gameId);
+            var game = await _dbContext.Games.FindAsync(gameId);
             if (game == null)
             {
                 throw new Exception("Game not found");
@@ -74,7 +74,7 @@ public class CartService : ICartService
             });
         }
 
-        _dbContext.SaveChanges();
+        await _dbContext.SaveChangesAsync();
     }
 
     /// <summary>
@@ -84,10 +84,10 @@ public class CartService : ICartService
     /// <param name="gameId">Game ID to update</param>
     /// <param name="quantity">New quantity (0 or less removes the item)</param>
     /// <exception cref="Exception">Thrown if item not found in cart</exception>
-    public void UpdateCartItem(int userId, int gameId, int quantity)
+    public async Task UpdateCartItemAsync(int userId, int gameId, int quantity)
     {
-        var existingItem = _dbContext.CartItems
-            .FirstOrDefault(item => item.UserId == userId && item.GameId == gameId);
+        var existingItem = await _dbContext.CartItems
+            .FirstOrDefaultAsync(item => item.UserId == userId && item.GameId == gameId);
 
         if (existingItem == null)
         {
@@ -98,13 +98,13 @@ public class CartService : ICartService
         {
             // Update to new quantity
             existingItem.Quantity = quantity;
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
         }
         else
         {
             // Remove item if quantity is 0 or negative
             _dbContext.CartItems.Remove(existingItem);
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
         }
     }
 
@@ -113,15 +113,15 @@ public class CartService : ICartService
     /// </summary>
     /// <param name="userId">User ID whose cart to modify</param>
     /// <param name="gameId">Game ID to remove</param>
-    public void RemoveCartItem(int userId, int gameId)
+    public async Task RemoveCartItemAsync(int userId, int gameId)
     {
-        var existingItem = _dbContext.CartItems
-            .FirstOrDefault(item => item.UserId == userId && item.GameId == gameId);
+        var existingItem = await _dbContext.CartItems
+            .FirstOrDefaultAsync(item => item.UserId == userId && item.GameId == gameId);
 
         if (existingItem != null)
         {
             _dbContext.CartItems.Remove(existingItem);
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
         }
     }
 
@@ -129,10 +129,11 @@ public class CartService : ICartService
     /// Clears all items from a user's cart (typically after checkout)
     /// </summary>
     /// <param name="userId">User ID whose cart to clear</param>
-    public void ClearCart(int userId)
+    public async Task ClearCartAsync(int userId)
     {
-        var items = _dbContext.CartItems.Where(ci => ci.UserId == userId);
+        var items = await _dbContext.CartItems.Where(ci => ci.UserId == userId).ToListAsync();
         _dbContext.CartItems.RemoveRange(items);
-        _dbContext.SaveChanges();
+        await _dbContext.SaveChangesAsync();
     }
 }
+

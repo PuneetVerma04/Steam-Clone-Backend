@@ -4,9 +4,9 @@ namespace SteamClone.Backend.Services;
 
 public interface IReviewService
 {
-    IEnumerable<ReviewDto> GetReviewForGame(int gameId);
-    ReviewDto? GetReviewById(int reviewId);
-    ReviewDto AddReview(int gameId, int userId, ReviewCreateDto newReviewDto);
-    bool DeleteReview(int reviewId, int currentUserId, string currentUserRole);
-    ReviewDto? UpdateReview(int reviewId, int currentUserId, string? comment, int? rating);
+    Task<IEnumerable<ReviewDto>> GetReviewForGameAsync(int gameId);
+    Task<ReviewDto?> GetReviewByIdAsync(int reviewId);
+    Task<ReviewDto> AddReviewAsync(int gameId, int userId, ReviewCreateDto newReviewDto);
+    Task<bool> DeleteReviewAsync(int reviewId, int currentUserId, string currentUserRole);
+    Task<ReviewDto?> UpdateReviewAsync(int reviewId, int currentUserId, string? comment, int? rating);
 }

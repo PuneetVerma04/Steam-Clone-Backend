@@ -4,9 +4,9 @@ namespace SteamClone.Backend.Services;
 
 public interface IGameService
 {
-    IEnumerable<GameResponseDTO> GetAllGames();
-    GameResponseDTO? GetById(int id);
-    GameResponseDTO CreateGame(CreateGameRequestDTO gameDto);
-    GameResponseDTO? UpdateGame(int id, UpdateGameRequestDTO updatedGameDto, int userId, string userRole);
-    bool DeleteGame(int id);
+    Task<IEnumerable<GameResponseDTO>> GetAllGamesAsync();
+    Task<GameResponseDTO?> GetByIdAsync(int id);
+    Task<GameResponseDTO> CreateGameAsync(CreateGameRequestDTO gameDto);
+    Task<GameResponseDTO?> UpdateGameAsync(int id, UpdateGameRequestDTO updatedGameDto, int userId, string userRole);
+    Task<bool> DeleteGameAsync(int id);
 }

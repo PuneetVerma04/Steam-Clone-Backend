@@ -29,9 +29,9 @@ public class AnalyticsController : ControllerBase
     /// </summary>
     /// <returns>Summary analytics with key business metrics</returns>
     [HttpGet]
-    public IActionResult GetSummary()
+    public async Task<IActionResult> GetSummary()
     {
-        var summary = _analyticsService.GetSummary();
+        var summary = await _analyticsService.GetSummaryAsync();
         return Ok(summary);
     }
 
@@ -41,9 +41,9 @@ public class AnalyticsController : ControllerBase
     /// <param name="count">Number of top games to return (default: 5)</param>
     /// <returns>Collection of top games with purchase statistics</returns>
     [HttpGet("topGames")]
-    public IActionResult GetTopPurchasedGames([FromQuery] int count = 5)
+    public async Task<IActionResult> GetTopPurchasedGames([FromQuery] int count = 5)
     {
-        var topGames = _analyticsService.GetTopPurchasedGames(count);
+        var topGames = await _analyticsService.GetTopPurchasedGamesAsync(count);
         return Ok(topGames);
     }
 
@@ -52,9 +52,9 @@ public class AnalyticsController : ControllerBase
     /// </summary>
     /// <returns>Total revenue amount for the past 30 days</returns>
     [HttpGet("revenue")]
-    public IActionResult GetRevenueLast30Days()
+    public async Task<IActionResult> GetRevenueLast30Days()
     {
-        var revenue = _analyticsService.GetRevenueLast30Days();
+        var revenue = await _analyticsService.GetRevenueLast30DaysAsync();
         return Ok(new { Last30DaysRevenue = revenue });
     }
 
@@ -64,9 +64,9 @@ public class AnalyticsController : ControllerBase
     /// <param name="days">Number of days to analyze (default: 30)</param>
     /// <returns>Daily revenue statistics for the specified period</returns>
     [HttpGet("revenue/daily")]
-    public IActionResult GetDailyRevenueStats([FromQuery] int days = 30)
+    public async Task<IActionResult> GetDailyRevenueStats([FromQuery] int days = 30)
     {
-        var dailyStats = _analyticsService.GetDailyRevenueStats(days);
+        var dailyStats = await _analyticsService.GetDailyRevenueStatsAsync(days);
         return Ok(dailyStats);
     }
 }

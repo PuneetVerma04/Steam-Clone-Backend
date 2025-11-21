@@ -5,9 +5,9 @@ namespace SteamClone.Backend.Services;
 
 public interface ICartService
 {
-    IEnumerable<CartItemDto> GetCartItems(int userId);
-    void AddToCart(int userId, int gameId, int quantity);
-    void UpdateCartItem(int userId, int gameId, int quantity);
-    void RemoveCartItem(int userId, int gameId);
-    void ClearCart(int userId);
+    Task<IEnumerable<CartItemDto>> GetCartItemsAsync(int userId);
+    Task AddToCartAsync(int userId, int gameId, int quantity);
+    Task UpdateCartItemAsync(int userId, int gameId, int quantity);
+    Task RemoveCartItemAsync(int userId, int gameId);
+    Task ClearCartAsync(int userId);
 }

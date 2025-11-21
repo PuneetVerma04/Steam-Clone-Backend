@@ -34,9 +34,9 @@ public class UsersController : ControllerBase
     /// <returns>Collection of users matching the filter</returns>
     [HttpGet]
     [Authorize(Roles = "Admin")]
-    public ActionResult<IEnumerable<UserDto>> GetUsers([FromQuery] string? username)
+    public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers([FromQuery] string? username)
     {
-        var users = _userService.GetAllUsers();
+        var users = await _userService.GetAllUsersAsync();
 
         // Filter by username if search term provided
         if (!string.IsNullOrEmpty(username))
@@ -55,7 +55,7 @@ public class UsersController : ControllerBase
     /// <returns>User details if found and authorized</returns>
     [HttpGet("{id}")]
     [Authorize]
-    public ActionResult<UserDto> GetUserById(int id)
+    public async Task<ActionResult<UserDto>> GetUserById(int id)
     {
         var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
         var currentUserRole = User.FindFirst(ClaimTypes.Role)?.Value;
@@ -66,7 +66,7 @@ public class UsersController : ControllerBase
             return Forbid();
         }
 
-        var user = _userService.GetById(id);
+        var user = await _userService.GetByIdAsync(id);
         if (user == null) return NotFound();
 
         var userDto = _mapper.Map<UserDto>(user);
@@ -81,7 +81,7 @@ public class UsersController : ControllerBase
     /// <returns>Updated user details if found and authorized</returns>
     [HttpPut("{id}")]
     [Authorize]
-    public ActionResult<UserDto> UpdatedUser(int id, [FromBody] UpdateUserDto updatedUserDto)
+    public async Task<ActionResult<UserDto>> UpdatedUser(int id, [FromBody] UpdateUserDto updatedUserDto)
     {
         var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
         var currentUserRole = User.FindFirst(ClaimTypes.Role)?.Value;
@@ -92,7 +92,7 @@ public class UsersController : ControllerBase
             return Forbid();
         }
 
-        var user = _userService.GetById(id);
+        var user = await _userService.GetByIdAsync(id);
         if (user == null)
         {
             return NotFound();
@@ -108,12 +108,12 @@ public class UsersController : ControllerBase
         if (updatedUserDto.Password != null)
         {
             // Use service method for secure password hashing
-            updatedUser = _userService.UpdatePassword(user, updatedUserDto.Password);
+            updatedUser = await _userService.UpdatePasswordAsync(user, updatedUserDto.Password);
         }
         else
         {
             user.UpdatedAt = DateTime.UtcNow;
-            updatedUser = _userService.Update(user);
+            updatedUser = await _userService.UpdateAsync(user);
         }
         var userDto = _mapper.Map<UserDto>(updatedUser);
 
@@ -127,9 +127,9 @@ public class UsersController : ControllerBase
     /// <returns>NoContent if successful, NotFound if user doesn't exist</returns>
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin")]
-    public ActionResult DeleteUser(int id)
+    public async Task<ActionResult> DeleteUser(int id)
     {
-        var success = _userService.Delete(id);
+        var success = await _userService.DeleteAsync(id);
         if (!success) return NotFound();
 
         return NoContent();

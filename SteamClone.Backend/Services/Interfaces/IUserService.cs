@@ -4,12 +4,12 @@ namespace SteamClone.Backend.Services;
 
 public interface IUserService
 {
-    User? GetByEmail(string email);
-    User? GetById(int id);
-    User Create(User user, string password);
-    User Update(User user);
-    User UpdatePassword(User user, string newPassword);
+    Task<User?> GetByEmailAsync(string email);
+    Task<User?> GetByIdAsync(int id);
+    Task<User> CreateAsync(User user, string password);
+    Task<User> UpdateAsync(User user);
+    Task<User> UpdatePasswordAsync(User user, string newPassword);
     bool VerifyPassword(User user, string password);
-    IEnumerable<User> GetAllUsers();
-    bool Delete(int id);
+    Task<IEnumerable<User>> GetAllUsersAsync();
+    Task<bool> DeleteAsync(int id);
 }

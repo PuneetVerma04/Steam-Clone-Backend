@@ -26,9 +26,9 @@ public class CouponService : ICouponService
     /// Retrieves all coupons from the database
     /// </summary>
     /// <returns>Collection of all coupon DTOs including active and inactive</returns>
-    public IEnumerable<CouponDto> GetAllCoupons()
+    public async Task<IEnumerable<CouponDto>> GetAllCouponsAsync()
     {
-        var coupons = _dbContext.Coupons.ToList();
+        var coupons = await _dbContext.Coupons.ToListAsync();
         return _mapper.Map<IEnumerable<CouponDto>>(coupons);
     }
 
@@ -37,9 +37,9 @@ public class CouponService : ICouponService
     /// </summary>
     /// <param name="couponId">Coupon ID</param>
     /// <returns>Coupon DTO if found, null otherwise</returns>
-    public CouponDto? GetCouponById(int couponId)
+    public async Task<CouponDto?> GetCouponByIdAsync(int couponId)
     {
-        var coupon = _dbContext.Coupons.Find(couponId);
+        var coupon = await _dbContext.Coupons.FindAsync(couponId);
         return coupon == null ? null : _mapper.Map<CouponDto>(coupon);
     }
 
@@ -48,7 +48,7 @@ public class CouponService : ICouponService
     /// </summary>
     /// <param name="newCouponDto">Coupon details including code, discount percentage, and expiration</param>
     /// <returns>Created coupon DTO with generated ID</returns>
-    public CouponDto CreateCoupon(CreateCouponDto newCouponDto)
+    public async Task<CouponDto> CreateCouponAsync(CreateCouponDto newCouponDto)
     {
         var newCoupon = _mapper.Map<Coupon>(newCouponDto);
 
@@ -57,7 +57,7 @@ public class CouponService : ICouponService
         newCoupon.CreatedAt = DateTime.UtcNow;
 
         _dbContext.Coupons.Add(newCoupon);
-        _dbContext.SaveChanges();
+        await _dbContext.SaveChangesAsync();
 
         return _mapper.Map<CouponDto>(newCoupon);
     }
@@ -67,9 +67,9 @@ public class CouponService : ICouponService
     /// </summary>
     /// <param name="couponId">Coupon ID to deactivate</param>
     /// <returns>Deactivated coupon DTO if successful, null if not found or already inactive</returns>
-    public CouponDto? DeactivateCoupon(int couponId)
+    public async Task<CouponDto?> DeactivateCouponAsync(int couponId)
     {
-        var coupon = _dbContext.Coupons.Find(couponId);
+        var coupon = await _dbContext.Coupons.FindAsync(couponId);
 
         // Validate coupon exists and is currently active
         if (coupon == null || !coupon.IsActive)
@@ -80,7 +80,7 @@ public class CouponService : ICouponService
         // Mark coupon as inactive (preserve original expiration date)
         coupon.IsActive = false;
 
-        _dbContext.SaveChanges();
+        await _dbContext.SaveChangesAsync();
 
         return _mapper.Map<CouponDto>(coupon);
     }

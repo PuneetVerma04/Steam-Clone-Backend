@@ -27,13 +27,13 @@ public class ReviewService : IReviewService
     /// </summary>
     /// <param name="gameId">Game ID to get reviews for</param>
     /// <returns>Collection of review DTOs for the specified game</returns>
-    public IEnumerable<ReviewDto> GetReviewForGame(int gameId)
+    public async Task<IEnumerable<ReviewDto>> GetReviewForGameAsync(int gameId)
     {
-        var gameReviews = _dbContext.Reviews
+        var gameReviews = await _dbContext.Reviews
             .Include(r => r.User)
             .Include(r => r.Game)
             .Where(r => r.GameId == gameId)
-            .ToList();
+            .ToListAsync();
         return _mapper.Map<IEnumerable<ReviewDto>>(gameReviews);
     }
 
@@ -42,12 +42,12 @@ public class ReviewService : IReviewService
     /// </summary>
     /// <param name="reviewId">Review ID</param>
     /// <returns>Review DTO if found, null otherwise</returns>
-    public ReviewDto? GetReviewById(int reviewId)
+    public async Task<ReviewDto?> GetReviewByIdAsync(int reviewId)
     {
-        var review = _dbContext.Reviews
+        var review = await _dbContext.Reviews
             .Include(r => r.User)
             .Include(r => r.Game)
-            .FirstOrDefault(r => r.ReviewId == reviewId);
+            .FirstOrDefaultAsync(r => r.ReviewId == reviewId);
         return review == null ? null : _mapper.Map<ReviewDto>(review);
     }
 
@@ -58,7 +58,7 @@ public class ReviewService : IReviewService
     /// <param name="userId">User ID creating the review</param>
     /// <param name="newReviewDto">Review content including rating and comment</param>
     /// <returns>Created review DTO with generated ID</returns>
-    public ReviewDto AddReview(int gameId, int userId, ReviewCreateDto newReviewDto)
+    public async Task<ReviewDto> AddReviewAsync(int gameId, int userId, ReviewCreateDto newReviewDto)
     {
         var newReview = _mapper.Map<Review>(newReviewDto);
         newReview.GameId = gameId;
@@ -66,13 +66,13 @@ public class ReviewService : IReviewService
         newReview.ReviewDate = DateTime.UtcNow;
 
         _dbContext.Reviews.Add(newReview);
-        _dbContext.SaveChanges();
+        await _dbContext.SaveChangesAsync();
 
         // Reload review with navigation properties
-        var createdReview = _dbContext.Reviews
+        var createdReview = await _dbContext.Reviews
             .Include(r => r.User)
             .Include(r => r.Game)
-            .FirstOrDefault(r => r.ReviewId == newReview.ReviewId);
+            .FirstOrDefaultAsync(r => r.ReviewId == newReview.ReviewId);
 
         return _mapper.Map<ReviewDto>(createdReview);
     }
@@ -84,9 +84,9 @@ public class ReviewService : IReviewService
     /// <param name="currentUserId">User ID attempting deletion</param>
     /// <param name="currentUserRole">Role of user attempting deletion</param>
     /// <returns>True if deletion successful, false if not found or unauthorized</returns>
-    public bool DeleteReview(int reviewId, int currentUserId, string currentUserRole)
+    public async Task<bool> DeleteReviewAsync(int reviewId, int currentUserId, string currentUserRole)
     {
-        var review = _dbContext.Reviews.Find(reviewId);
+        var review = await _dbContext.Reviews.FindAsync(reviewId);
         if (review == null)
         {
             return false;
@@ -99,7 +99,7 @@ public class ReviewService : IReviewService
         }
 
         _dbContext.Reviews.Remove(review);
-        _dbContext.SaveChanges();
+        await _dbContext.SaveChangesAsync();
 
         return true;
     }
@@ -112,9 +112,9 @@ public class ReviewService : IReviewService
     /// <param name="comment">Updated comment text (optional)</param>
     /// <param name="rating">Updated rating (optional, must be 1-5)</param>
     /// <returns>Updated review DTO if successful, null if not found or unauthorized</returns>
-    public ReviewDto? UpdateReview(int reviewId, int currentUserId, string? comment, int? rating)
+    public async Task<ReviewDto?> UpdateReviewAsync(int reviewId, int currentUserId, string? comment, int? rating)
     {
-        var review = _dbContext.Reviews.Find(reviewId);
+        var review = await _dbContext.Reviews.FindAsync(reviewId);
 
         // Verify review exists and user owns it
         if (review == null || review.UserId != currentUserId)
@@ -134,7 +134,7 @@ public class ReviewService : IReviewService
             review.Rating = rating.Value;
         }
 
-        _dbContext.SaveChanges();
+        await _dbContext.SaveChangesAsync();
 
         return _mapper.Map<ReviewDto>(review);
     }

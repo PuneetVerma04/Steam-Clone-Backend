@@ -58,15 +58,15 @@ public class OrderController : ControllerBase
     /// </summary>
     /// <returns>Collection of orders based on user role</returns>
     [HttpGet]
-    public IActionResult GetOrdersforCurrentUser()
+    public async Task<IActionResult> GetOrdersforCurrentUser()
     {
         var currentUserId = GetCurrentUserId();
         var currentUserRole = GetCurrentUserRole();
 
         // Admins can view all orders, regular users only see their own
         var orders = currentUserRole == "Admin"
-                    ? _orderService.GetAllOrders()
-                    : _orderService.GetOrdersForUser(currentUserId);
+                    ? await _orderService.GetAllOrdersAsync()
+                    : await _orderService.GetOrdersForUserAsync(currentUserId);
 
         return Ok(orders);
     }
@@ -76,15 +76,15 @@ public class OrderController : ControllerBase
     /// </summary>
     /// <returns>Created order details with order ID</returns>
     [HttpPost("checkout")]
-    public IActionResult Checkout()
+    public async Task<IActionResult> Checkout()
     {
         var currentUserId = GetCurrentUserId();
 
         // Fetch actual CartItem entities with Game navigation property
-        var cartItemEntities = _dbContext.CartItems
+        var cartItemEntities = await _dbContext.CartItems
             .Include(ci => ci.Game)
             .Where(ci => ci.UserId == currentUserId)
-            .ToList();
+            .ToListAsync();
 
         // Validate cart is not empty
         if (!cartItemEntities.Any())
@@ -93,8 +93,8 @@ public class OrderController : ControllerBase
         }
 
         // Create order from cart items and clear the cart
-        var order = _orderService.CreateOrder(currentUserId, cartItemEntities);
-        _cartService.ClearCart(currentUserId);
+        var order = await _orderService.CreateOrderAsync(currentUserId, cartItemEntities);
+        await _cartService.ClearCartAsync(currentUserId);
         return Ok(order);
     }
 
@@ -105,9 +105,9 @@ public class OrderController : ControllerBase
     /// <returns>Order details if found and authorized, otherwise NotFound or Forbidden</returns>
     [HttpGet("{orderId}")]
     [Authorize(Roles = "Player,Admin")]
-    public IActionResult GetOrderDetails(int orderId)
+    public async Task<IActionResult> GetOrderDetails(int orderId)
     {
-        var order = _orderService.GetOrderById(orderId);
+        var order = await _orderService.GetOrderByIdAsync(orderId);
         if (order == null)
         {
             return NotFound("Order not found");
@@ -132,9 +132,9 @@ public class OrderController : ControllerBase
     /// <returns>Ok if successful, NotFound if order doesn't exist</returns>
     [HttpPatch("{orderId}/status")]
     [Authorize(Roles = "Admin")]
-    public IActionResult UpdateOrderStatus(int orderId, [FromBody] OrderStatus newStatus)
+    public async Task<IActionResult> UpdateOrderStatus(int orderId, [FromBody] OrderStatus newStatus)
     {
-        var success = _orderService.UpdateOrderStatus(orderId, newStatus);
+        var success = await _orderService.UpdateOrderStatusAsync(orderId, newStatus);
         if (!success)
         {
             return NotFound("Order not found");

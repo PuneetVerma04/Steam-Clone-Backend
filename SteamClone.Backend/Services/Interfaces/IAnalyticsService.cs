@@ -4,9 +4,9 @@ namespace SteamClone.Backend.Services.Interfaces
 {
     public interface IAnalyticsService
     {
-        AnalyticsSummaryDto GetSummary();
-        IEnumerable<TopGameDto> GetTopPurchasedGames(int count = 5);
-        decimal GetRevenueLast30Days();
-        IEnumerable<RevenueStatsDto> GetDailyRevenueStats(int days = 30);
+        Task<AnalyticsSummaryDto> GetSummaryAsync();
+        Task<IEnumerable<TopGameDto>> GetTopPurchasedGamesAsync(int count = 5);
+        Task<decimal> GetRevenueLast30DaysAsync();
+        Task<IEnumerable<RevenueStatsDto>> GetDailyRevenueStatsAsync(int days = 30);
     }
 }

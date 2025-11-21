@@ -56,9 +56,9 @@ public class ReviewController : ControllerBase
     /// <returns>Collection of reviews for the specified game</returns>
     [Authorize(Roles = "Admin, Player, Publisher")]
     [HttpGet("game/{gameId}")]
-    public ActionResult<IEnumerable<ReviewDto>> GetReviewForGame(int gameId)
+    public async Task<ActionResult<IEnumerable<ReviewDto>>> GetReviewForGame(int gameId)
     {
-        var gameReviews = _reviewService.GetReviewForGame(gameId);
+        var gameReviews = await _reviewService.GetReviewForGameAsync(gameId);
         return Ok(gameReviews);
     }
 
@@ -68,9 +68,9 @@ public class ReviewController : ControllerBase
     /// <param name="reviewId">Review identifier</param>
     /// <returns>Review details if found, otherwise NotFound</returns>
     [HttpGet("{reviewId}")]
-    public ActionResult<ReviewDto> GetReviewById(int reviewId)
+    public async Task<ActionResult<ReviewDto>> GetReviewById(int reviewId)
     {
-        var review = _reviewService.GetReviewById(reviewId);
+        var review = await _reviewService.GetReviewByIdAsync(reviewId);
         if (review == null)
         {
             return NotFound();
@@ -86,12 +86,12 @@ public class ReviewController : ControllerBase
     /// <returns>Created review with 201 status</returns>
     [HttpPost("game/{gameId}/add")]
     [Authorize(Roles = "Player")]
-    public ActionResult<ReviewDto> CreateReview(int gameId, [FromBody] ReviewCreateDto newReviewDto)
+    public async Task<ActionResult<ReviewDto>> CreateReview(int gameId, [FromBody] ReviewCreateDto newReviewDto)
     {
         var currentUserId = GetCurrentUserId();
 
         // Create review associated with current user and game
-        var createdReview = _reviewService.AddReview(gameId, currentUserId, newReviewDto);
+        var createdReview = await _reviewService.AddReviewAsync(gameId, currentUserId, newReviewDto);
 
         return StatusCode(201, createdReview);
     }
@@ -103,9 +103,9 @@ public class ReviewController : ControllerBase
     /// <returns>NoContent if successful, NotFound if review doesn't exist, Forbid if unauthorized</returns>
     [HttpDelete("{reviewId}")]
     [Authorize]
-    public ActionResult DeleteReview(int reviewId)
+    public async Task<ActionResult> DeleteReview(int reviewId)
     {
-        var review = _reviewService.GetReviewById(reviewId);
+        var review = await _reviewService.GetReviewByIdAsync(reviewId);
         if (review == null)
         {
             return NotFound();
@@ -115,7 +115,7 @@ public class ReviewController : ControllerBase
         var currentUserRole = GetCurrentUserRole();
 
         // Verify user owns the review or is an admin
-        var success = _reviewService.DeleteReview(reviewId, currentUserId, currentUserRole);
+        var success = await _reviewService.DeleteReviewAsync(reviewId, currentUserId, currentUserRole);
         if (!success)
         {
             return Forbid();
@@ -131,12 +131,12 @@ public class ReviewController : ControllerBase
     /// <returns>Updated review details if found and authorized, otherwise NotFound</returns>
     [HttpPatch("{reviewId}/update")]
     [Authorize(Roles = "Player")]
-    public ActionResult<ReviewDto> UpdateReview(int reviewId, [FromBody] ReviewCreateDto updatedReviewDto)
+    public async Task<ActionResult<ReviewDto>> UpdateReview(int reviewId, [FromBody] ReviewCreateDto updatedReviewDto)
     {
         var currentUserId = GetCurrentUserId();
 
         // Update review only if user owns it
-        var updatedReview = _reviewService.UpdateReview(reviewId, currentUserId, updatedReviewDto.Comment, updatedReviewDto.Rating);
+        var updatedReview = await _reviewService.UpdateReviewAsync(reviewId, currentUserId, updatedReviewDto.Comment, updatedReviewDto.Rating);
         if (updatedReview == null)
         {
             return NotFound();

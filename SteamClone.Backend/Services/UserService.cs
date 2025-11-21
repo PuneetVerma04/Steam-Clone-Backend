@@ -1,6 +1,7 @@
 using SteamClone.Backend.Entities;
 using AutoMapper;
 using BCrypt.Net;
+using Microsoft.EntityFrameworkCore;
 
 namespace SteamClone.Backend.Services;
 
@@ -26,9 +27,9 @@ public class UserService : IUserService
     /// </summary>
     /// <param name="email">User's email address</param>
     /// <returns>User entity if found, null otherwise</returns>
-    public User? GetByEmail(string email)
+    public async Task<User?> GetByEmailAsync(string email)
     {
-        return _dbContext.Users.FirstOrDefault(u => u.Email == email);
+        return await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
     }
 
     /// <summary>
@@ -36,9 +37,9 @@ public class UserService : IUserService
     /// </summary>
     /// <param name="id">User ID</param>
     /// <returns>User entity if found, null otherwise</returns>
-    public User? GetById(int id)
+    public async Task<User?> GetByIdAsync(int id)
     {
-        return _dbContext.Users.Find(id);
+        return await _dbContext.Users.FindAsync(id);
     }
 
     /// <summary>
@@ -47,7 +48,7 @@ public class UserService : IUserService
     /// <param name="user">User entity with basic information</param>
     /// <param name="rawPassword">Plain text password to be hashed</param>
     /// <returns>Created user entity with generated ID</returns>
-    public User Create(User user, string rawPassword)
+    public async Task<User> CreateAsync(User user, string rawPassword)
     {
         // Set account creation timestamp
         user.CreatedAt = DateTime.UtcNow;
@@ -56,7 +57,7 @@ public class UserService : IUserService
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(rawPassword);
 
         _dbContext.Users.Add(user);
-        _dbContext.SaveChanges();
+        await _dbContext.SaveChangesAsync();
 
         return user;
     }
@@ -84,10 +85,10 @@ public class UserService : IUserService
     /// </summary>
     /// <param name="user">User entity with updated information</param>
     /// <returns>Updated user entity</returns>
-    public User Update(User user)
+    public async Task<User> UpdateAsync(User user)
     {
         _dbContext.Users.Update(user);
-        _dbContext.SaveChanges();
+        await _dbContext.SaveChangesAsync();
         return user;
     }
 
@@ -97,12 +98,12 @@ public class UserService : IUserService
     /// <param name="user">User entity to update</param>
     /// <param name="newPassword">New plain text password to hash and store</param>
     /// <returns>Updated user entity</returns>
-    public User UpdatePassword(User user, string newPassword)
+    public async Task<User> UpdatePasswordAsync(User user, string newPassword)
     {
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
         user.UpdatedAt = DateTime.UtcNow;
         _dbContext.Users.Update(user);
-        _dbContext.SaveChanges();
+        await _dbContext.SaveChangesAsync();
         return user;
     }
 
@@ -110,9 +111,9 @@ public class UserService : IUserService
     /// Retrieves all registered users
     /// </summary>
     /// <returns>Collection of all user entities</returns>
-    public IEnumerable<User> GetAllUsers()
+    public async Task<IEnumerable<User>> GetAllUsersAsync()
     {
-        return _dbContext.Users.ToList();
+        return await _dbContext.Users.ToListAsync();
     }
 
     /// <summary>
@@ -120,13 +121,13 @@ public class UserService : IUserService
     /// </summary>
     /// <param name="id">User ID to delete</param>
     /// <returns>True if deletion successful, false if user not found</returns>
-    public bool Delete(int id)
+    public async Task<bool> DeleteAsync(int id)
     {
-        var user = _dbContext.Users.Find(id);
+        var user = await _dbContext.Users.FindAsync(id);
         if (user == null) return false;
 
         _dbContext.Users.Remove(user);
-        _dbContext.SaveChanges();
+        await _dbContext.SaveChangesAsync();
 
         return true;
     }

@@ -31,9 +31,9 @@ public class CouponController : ControllerBase
     /// <returns>Collection of all coupons including active and inactive</returns>
     [HttpGet]
     [Authorize(Roles = "Player,Admin")]
-    public ActionResult<IEnumerable<CouponDto>> GetCoupons()
+    public async Task<ActionResult<IEnumerable<CouponDto>>> GetCoupons()
     {
-        var couponDtos = _couponService.GetAllCoupons();
+        var couponDtos = await _couponService.GetAllCouponsAsync();
         return Ok(couponDtos);
     }
 
@@ -44,9 +44,9 @@ public class CouponController : ControllerBase
     /// <returns>Coupon details if found, otherwise NotFound</returns>
     [HttpGet("{couponId}")]
     [Authorize(Roles = "Admin")]
-    public ActionResult<CouponDto> GetCouponById(int couponId)
+    public async Task<ActionResult<CouponDto>> GetCouponById(int couponId)
     {
-        var coupon = _couponService.GetCouponById(couponId);
+        var coupon = await _couponService.GetCouponByIdAsync(couponId);
         if (coupon == null)
         {
             return NotFound();
@@ -61,9 +61,9 @@ public class CouponController : ControllerBase
     /// <returns>Created coupon with generated ID and location header</returns>
     [HttpPost]
     [Authorize(Roles = "Admin")]
-    public ActionResult<CouponDto> CreateCoupon([FromBody] CreateCouponDto newCouponDto)
+    public async Task<ActionResult<CouponDto>> CreateCoupon([FromBody] CreateCouponDto newCouponDto)
     {
-        var createdCouponDto = _couponService.CreateCoupon(newCouponDto);
+        var createdCouponDto = await _couponService.CreateCouponAsync(newCouponDto);
         return CreatedAtAction(nameof(GetCouponById), new { couponId = createdCouponDto.CouponId }, createdCouponDto);
     }
 
@@ -74,9 +74,9 @@ public class CouponController : ControllerBase
     /// <returns>Deactivated coupon details, NotFound if doesn't exist, BadRequest if already inactive</returns>
     [HttpPatch("{couponId}/deactivate")]
     [Authorize(Roles = "Admin")]
-    public ActionResult<CouponDto> UpdateCoupon(int couponId)
+    public async Task<ActionResult<CouponDto>> UpdateCoupon(int couponId)
     {
-        var updatedCoupon = _couponService.DeactivateCoupon(couponId);
+        var updatedCoupon = await _couponService.DeactivateCouponAsync(couponId);
         if (updatedCoupon == null)
         {
             return BadRequest("Coupon not found or already inactive");

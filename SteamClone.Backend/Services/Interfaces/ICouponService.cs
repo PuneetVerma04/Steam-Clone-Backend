@@ -4,8 +4,8 @@ namespace SteamClone.Backend.Services;
 
 public interface ICouponService
 {
-    IEnumerable<CouponDto> GetAllCoupons();
-    CouponDto? GetCouponById(int couponId);
-    CouponDto CreateCoupon(CreateCouponDto newCouponDto);
-    CouponDto? DeactivateCoupon(int couponId);
+    Task<IEnumerable<CouponDto>> GetAllCouponsAsync();
+    Task<CouponDto?> GetCouponByIdAsync(int couponId);
+    Task<CouponDto> CreateCouponAsync(CreateCouponDto newCouponDto);
+    Task<CouponDto?> DeactivateCouponAsync(int couponId);
 }

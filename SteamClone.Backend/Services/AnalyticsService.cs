@@ -27,10 +27,10 @@ public class AnalyticsService : IAnalyticsService
     /// Generates an overall business summary with key metrics
     /// </summary>
     /// <returns>Summary containing total revenue, orders, and users</returns>
-    public AnalyticsSummaryDto GetSummary()
+    public async Task<AnalyticsSummaryDto> GetSummaryAsync()
     {
-        var orders = _orderService.GetAllOrders().ToList();
-        var users = _userService.GetAllUsers().ToList();
+        var orders = (await _orderService.GetAllOrdersAsync()).ToList();
+        var users = (await _userService.GetAllUsersAsync()).ToList();
 
         return new AnalyticsSummaryDto
         {
@@ -46,10 +46,10 @@ public class AnalyticsService : IAnalyticsService
     /// </summary>
     /// <param name="count">Number of top games to return</param>
     /// <returns>Collection of top games ranked by total purchases and revenue</returns>
-    public IEnumerable<TopGameDto> GetTopPurchasedGames(int count = 5)
+    public async Task<IEnumerable<TopGameDto>> GetTopPurchasedGamesAsync(int count = 5)
     {
-        var orders = _orderService.GetAllOrders();
-        var games = _gameService.GetAllGames().ToList();
+        var orders = await _orderService.GetAllOrdersAsync();
+        var games = (await _gameService.GetAllGamesAsync()).ToList();
 
         // Aggregate order items by game and calculate totals
         var topGames = orders
@@ -71,10 +71,11 @@ public class AnalyticsService : IAnalyticsService
     /// Calculates total revenue generated in the last 30 days
     /// </summary>
     /// <returns>Sum of all order totals from the past 30 days</returns>
-    public decimal GetRevenueLast30Days()
+    public async Task<decimal> GetRevenueLast30DaysAsync()
     {
         var cutoffDate = DateTime.UtcNow.AddDays(-30);
-        return _orderService.GetAllOrders()
+        var orders = await _orderService.GetAllOrdersAsync();
+        return orders
             .Where(o => o.OrderDate >= cutoffDate)
             .Sum(o => o.TotalPrice);
     }
@@ -84,10 +85,10 @@ public class AnalyticsService : IAnalyticsService
     /// </summary>
     /// <param name="days">Number of days to include in the analysis</param>
     /// <returns>Collection of daily revenue data points for the specified period</returns>
-    public IEnumerable<RevenueStatsDto> GetDailyRevenueStats(int days = 30)
+    public async Task<IEnumerable<RevenueStatsDto>> GetDailyRevenueStatsAsync(int days = 30)
     {
         var startDate = DateTime.UtcNow.AddDays(-days).Date;
-        var orders = _orderService.GetAllOrders()
+        var orders = (await _orderService.GetAllOrdersAsync())
             .Where(o => o.OrderDate >= startDate)
             .ToList();
 

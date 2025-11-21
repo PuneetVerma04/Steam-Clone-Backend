@@ -27,11 +27,11 @@ public class GameService : IGameService
     /// Retrieves all games from the catalog
     /// </summary>
     /// <returns>Collection of game DTOs with complete information</returns>
-    public IEnumerable<GameResponseDTO> GetAllGames()
+    public async Task<IEnumerable<GameResponseDTO>> GetAllGamesAsync()
     {
-        var games = _dbContext.Games
+        var games = await _dbContext.Games
             .Include(g => g.Publisher)
-            .ToList();
+            .ToListAsync();
         return _mapper.Map<IEnumerable<GameResponseDTO>>(games);
     }
 
@@ -40,11 +40,11 @@ public class GameService : IGameService
     /// </summary>
     /// <param name="id">Game ID</param>
     /// <returns>Game DTO if found, null otherwise</returns>
-    public GameResponseDTO? GetById(int id)
+    public async Task<GameResponseDTO?> GetByIdAsync(int id)
     {
-        var game = _dbContext.Games
+        var game = await _dbContext.Games
             .Include(g => g.Publisher)
-            .FirstOrDefault(g => g.Id == id);
+            .FirstOrDefaultAsync(g => g.Id == id);
         return game == null ? null : _mapper.Map<GameResponseDTO>(game);
     }
 
@@ -53,10 +53,10 @@ public class GameService : IGameService
     /// </summary>
     /// <param name="gameDto">Game creation request with all required details</param>
     /// <returns>Created game DTO with generated ID</returns>
-    public GameResponseDTO CreateGame(CreateGameRequestDTO gameDto)
+    public async Task<GameResponseDTO> CreateGameAsync(CreateGameRequestDTO gameDto)
     {
-        var publisher = _dbContext.Users
-            .FirstOrDefault(u => u.Id == gameDto.PublisherId && u.Role == UserRole.Publisher);
+        var publisher = await _dbContext.Users
+            .FirstOrDefaultAsync(u => u.Id == gameDto.PublisherId && u.Role == UserRole.Publisher);
 
 
         if (publisher == null)
@@ -68,9 +68,9 @@ public class GameService : IGameService
         game.Publisher = publisher;
 
         _dbContext.Games.Add(game);
-        _dbContext.SaveChanges();
+        await _dbContext.SaveChangesAsync();
 
-        _dbContext.Entry(game).Reference(g => g.Publisher).Load();
+        await _dbContext.Entry(game).Reference(g => g.Publisher).LoadAsync();
         return _mapper.Map<GameResponseDTO>(game);
     }
 
@@ -83,11 +83,11 @@ public class GameService : IGameService
     /// <param name="userId">ID of the user making the update</param>
     /// <param name="userRole">Role of the user making the update</param>
     /// <returns>Updated game DTO if found and authorized, null otherwise</returns>
-    public GameResponseDTO? UpdateGame(int id, UpdateGameRequestDTO updatedGameDto, int userId, string userRole)
+    public async Task<GameResponseDTO?> UpdateGameAsync(int id, UpdateGameRequestDTO updatedGameDto, int userId, string userRole)
     {
-        var existingGame = _dbContext.Games
+        var existingGame = await _dbContext.Games
             .Include(g => g.Publisher)
-            .FirstOrDefault(g => g.Id == id);
+            .FirstOrDefaultAsync(g => g.Id == id);
 
         if (existingGame == null) return null;
 
@@ -107,8 +107,8 @@ public class GameService : IGameService
         }
         else if (userRole == "Admin" && requestedPublisherId.HasValue)
         {
-            var newPub = _dbContext.Users
-                .FirstOrDefault(u => u.Id == requestedPublisherId.Value && u.Role == UserRole.Publisher);
+            var newPub = await _dbContext.Users
+                .FirstOrDefaultAsync(u => u.Id == requestedPublisherId.Value && u.Role == UserRole.Publisher);
             if (newPub == null) return null; // Invalid publisher
             // Will be applied via mapping: ensure PublisherId present
         }
@@ -120,12 +120,12 @@ public class GameService : IGameService
 
         // Map updated fields to existing entity
         _mapper.Map(updatedGameDto, existingGame);
-        _dbContext.SaveChanges();
+        await _dbContext.SaveChangesAsync();
 
         // Reload to get updated Publisher info
-        var updated = _dbContext.Games
+        var updated = await _dbContext.Games
             .Include(g => g.Publisher)
-            .FirstOrDefault(g => g.Id == id);
+            .FirstOrDefaultAsync(g => g.Id == id);
 
         return _mapper.Map<GameResponseDTO>(updated);
     }
@@ -135,14 +135,15 @@ public class GameService : IGameService
     /// </summary>
     /// <param name="id">Game ID to delete</param>
     /// <returns>True if deletion successful, false if game not found</returns>
-    public bool DeleteGame(int id)
+    public async Task<bool> DeleteGameAsync(int id)
     {
-        var gameToDelete = _dbContext.Games.Find(id);
+        var gameToDelete = await _dbContext.Games.FindAsync(id);
         if (gameToDelete == null) return false;
 
         _dbContext.Games.Remove(gameToDelete);
-        _dbContext.SaveChanges();
+        await _dbContext.SaveChangesAsync();
 
         return true;
     }
 }
+
