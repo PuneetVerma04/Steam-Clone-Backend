@@ -8,6 +8,7 @@ public interface IUserService
     User? GetById(int id);
     User Create(User user, string password);
     User Update(User user);
+    User UpdatePassword(User user, string newPassword);
     bool VerifyPassword(User user, string password);
     IEnumerable<User> GetAllUsers();
     bool Delete(int id);
